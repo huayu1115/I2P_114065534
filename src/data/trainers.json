@@ -1,0 +1,48 @@
+{
+  "Kieran": {
+    "name": "Kieran",
+    "sprite_path": "character/ow10.png",
+    "team": [
+      { "name": "Sproutkit", "level": 10 },
+      { "name": "Pebblet", "level": 10 },
+      { "name": "Vichirp", "level": 10 }
+    ],
+    "reward_money": 3
+  },
+  "Mira": {
+    "name": "Mira",
+    "sprite_path": "character/ow9.png",
+    "team": [
+      { "name": "Leafpard", "level": 20 },
+      { "name": "Bush-Shell", "level": 20 }
+    ],
+    "reward_money": 5
+  },
+  "Serena": {
+    "name": "Serena",
+    "sprite_path": "character/ow3.png",
+    "team": [
+      { "name": "Dreamweaver", "level": 25 },
+      { "name": "Zaplet", "level": 25 }
+    ],
+    "reward_money": 7
+  },
+  "Quinn": {
+    "name": "Quinn",
+    "sprite_path": "character/ow6.png",
+    "team": [
+      { "name": "Glacifawn", "level": 40 },
+      { "name": "Oceanus-Sage", "level": 40 }
+    ],
+    "reward_money": 15
+  },
+  "Aiden": {
+    "name": "Aiden",
+    "sprite_path": "character/ow8.png",
+    "team": [
+      { "name": "Pyrospin", "level": 30 },
+      { "name": "Sonic-Fin", "level": 30 }
+    ],
+    "reward_money": 9
+  }
+}

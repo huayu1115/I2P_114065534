@@ -1,0 +1,27 @@
+# i2p_project/src/utils/__init__.py
+
+from .logger import Logger
+from .settings import GameSettings
+from .loader import load_tmx, load_img, load_font, load_sound
+from .definition import Position, PositionCamera, Direction, MouseBtn, Key, Teleport
+
+__all__ = [
+    "Logger",
+    "GameSettings",
+    "load_tmx",
+    "load_img",
+    "load_font",
+    "load_sound",
+    "Position",
+    "PositionCamera",
+    "Direction",
+    "MouseBtn",
+    "Key",
+    "Teleport",
+]
+
+from enum import Enum
+
+class BattleType(Enum):
+    WILD = "wild"
+    TRAINER = "trainer"

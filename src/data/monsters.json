@@ -1,0 +1,167 @@
+{
+  "Sproutkit": {
+    "name": "Sproutkit",
+    "type": "grass",
+    "base_hp": 46,
+    "base_attack": 34,
+    "sprite_path": "menu_sprites/menusprite1.png",
+    "sprite_battle_path": "sprites/sprite1.png", 
+    "evolution": {
+      "level": 18,
+      "next_id": "Leafpard"
+    }
+  },
+  "Leafpard": {
+    "name": "Leafpard",
+    "type": "grass",
+    "base_hp": 58,
+    "base_attack": 60,
+    "sprite_path": "menu_sprites/menusprite2.png",
+    "sprite_battle_path": "sprites/sprite2.png",
+    "evolution": {
+      "level": 36,
+      "next_id": "Jungleo"
+    }
+  },
+  "Jungleo": {
+    "name": "Jungleo",
+    "type": "grass",
+    "base_hp": 78,
+    "base_attack": 80,
+    "sprite_path": "menu_sprites/menusprite3.png",
+    "sprite_battle_path": "sprites/sprite3.png",
+    "evolution": null
+  },
+  "Pebblet": {
+    "name": "Pebblet",
+    "type": "fire",
+    "base_hp": 55,
+    "base_attack": 32,
+    "sprite_path": "menu_sprites/menusprite4.png",
+    "sprite_battle_path": "sprites/sprite4.png",
+    "evolution": null
+  },
+  "Vichirp": {
+    "name": "Jungleo",
+    "type": "fire",
+    "base_hp": 35,
+    "base_attack": 48,
+    "sprite_path": "menu_sprites/menusprite5.png",
+    "sprite_battle_path": "sprites/sprite5.png",
+    "evolution": null
+  },
+  "Glacifawn": {
+    "name": "Glacifawn",
+    "type": "water",
+    "base_hp": 60,
+    "base_attack": 74,
+    "sprite_path": "menu_sprites/menusprite6.png",
+    "sprite_battle_path": "sprites/sprite6.png",
+    "evolution": null
+  },
+  "Cinderillo": {
+    "name": "Cinderillo",
+    "type": "fire",
+    "base_hp": 35,
+    "base_attack": 45,
+    "sprite_path": "menu_sprites/menusprite7.png",
+    "sprite_battle_path": "sprites/sprite7.png",
+    "evolution": {
+      "level": 18,
+      "next_id": "Pyrospin"
+    }
+  },
+  "Pyrospin": {
+    "name": "Pyrospin",
+    "type": "fire",
+    "base_hp": 50,
+    "base_attack": 66,
+    "sprite_path": "menu_sprites/menusprite8.png",
+    "sprite_battle_path": "sprites/sprite8.png",
+    "evolution": {
+      "level": 36,
+      "next_id": "Infernotank"
+    }
+  },
+  "Infernotank": {
+    "name": "Infernotank",
+    "type": "grass",
+    "base_hp": 70,
+    "base_attack": 88,
+    "sprite_path": "menu_sprites/menusprite9.png",
+    "sprite_battle_path": "sprites/sprite9.png",
+    "evolution": null
+  },
+  "Dreamweaver": {
+    "name": "Dreamweaver",
+    "type": "water",
+    "base_hp": 65,
+    "base_attack": 62,
+    "sprite_path": "menu_sprites/menusprite10.png",
+    "sprite_battle_path": "sprites/sprite10.png",
+    "evolution": null
+  },
+  "Zaplet": {
+    "name": "Zaplet",
+    "type": "water",
+    "base_hp": 52,
+    "base_attack": 50,
+    "sprite_path": "menu_sprites/menusprite11.png",
+    "sprite_battle_path": "sprites/sprite11.png",
+    "evolution": null
+  },
+  "Bubphin": {
+    "name": "Bubphin",
+    "type": "water",
+    "base_hp": 40,
+    "base_attack": 40,
+    "sprite_path": "menu_sprites/menusprite12.png",
+    "sprite_battle_path": "sprites/sprite12.png",
+    "evolution": {
+      "level": 18,
+      "next_id": "Sonic-Fin"
+    }
+  },
+  "Sonic-Fin": {
+    "name": "Sonic-Fin",
+    "type": "water",
+    "base_hp": 54,
+    "base_attack": 63,
+    "sprite_path": "menu_sprites/menusprite13.png",
+    "sprite_battle_path": "sprites/sprite13.png",
+    "evolution": {
+      "level": 36,
+      "next_id": "Oceanus-Sage"
+    }
+  },
+  "Oceanus-Sage": {
+    "name": "Oceanus-Sage",
+    "type": "water",
+    "base_hp": 74,
+    "base_attack": 84,
+    "sprite_path": "menu_sprites/menusprite14.png",
+    "sprite_battle_path": "sprites/sprite14.png",
+    "evolution": null
+  },
+  "Seedle": {
+    "name": "Seedle",
+    "type": "grass",
+    "base_hp": 38,
+    "base_attack": 38,
+    "sprite_path": "menu_sprites/menusprite15.png",
+    "sprite_battle_path": "sprites/sprite15.png",
+    "evolution":  {
+      "level": 18,
+      "next_id": "Bush-Shell"
+    }
+  },
+  "Bush-Shell": {
+    "name": "Bush-Shell",
+    "type": "grass",
+    "base_hp": 58,
+    "base_attack": 58,
+    "sprite_path": "menu_sprites/menusprite16.png",
+    "sprite_battle_path": "sprites/sprite16.png",
+    "evolution": null
+  }
+}

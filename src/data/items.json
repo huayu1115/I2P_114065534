@@ -1,0 +1,12 @@
+{
+  "potion": {
+    "name": "Potion",
+    "price": 5,
+    "sprite_path": "ingame_ui/potion.png"
+  },
+  "pokeball": {
+    "name": "Pokeball",
+    "price": 2,
+    "sprite_path": "ingame_ui/ball.png"
+  }
+}
