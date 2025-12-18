@@ -41,6 +41,11 @@ class GameScene(Scene):
 
     '''check point 3 -2: Shop Overlay'''
     shop_window: ShopWindow
+
+    '''check point 3 -3: 對話框'''
+    _chat_bubbles: dict[int, tuple[str, float]]
+    _last_chat_id_seen: int
+    chat_overlay: ChatOverlay | None
     
     def __init__(self):
         super().__init__()
@@ -50,14 +55,20 @@ class GameScene(Scene):
             Logger.error("Failed to load game manager")
             exit(1)
         self.game_manager = manager
+
+        self._chat_bubbles = {}
+        self._last_chat_id_seen = 0
+        self.chat_overlay = None
         
         # Online Manager
         if GameSettings.IS_ONLINE:
             self.online_manager = OnlineManager()
-            #self.chat_overlay = ChatOverlay(
-            #    send_callback=..., # send chat method
-            #    get_messages=..., # get chat messages method
-            #)
+
+            # checkpoint3-3: 初始化 ChatOverlay
+            self.chat_overlay = ChatOverlay(
+                send_callback=self.online_manager.send_chat,
+                get_messages=self.online_manager.get_recent_chat
+            )
         else:
             self.online_manager = None
         self.remote_players: dict[int, Entity] = {} # 存 id 對應的 Entity
@@ -161,10 +172,19 @@ class GameScene(Scene):
 
         elif self.shop_window.is_open:
             self.shop_window.update(dt)
+
+        elif self.chat_overlay and self.chat_overlay.is_open:
+            self.chat_overlay.update(dt)
             
         else: ## 正常遊戲 ##
             # Check if there is assigned next scene
             self.game_manager.try_switch_map()
+            
+            # checkpoint 3-3: 偵測開啟聊天室的按鍵，開啟聊天時暫停移動
+            if self.chat_overlay and not self.chat_overlay.is_open:
+                if input_manager.key_pressed(pg.K_t):
+                    self.chat_overlay.open()
+                    return
             
             # Update player and other data
             if self.game_manager.player:
@@ -251,35 +271,26 @@ class GameScene(Scene):
             # Update others
             self.game_manager.bag.update(dt)
 
-            """
-            TODO: UPDATE CHAT OVERLAY:
-
-            # if self._chat_overlay:
-            #     if _____.key_pressed(...):
-            #         self._chat_overlay.____
-            #     self._chat_overlay.update(____)
-            # Update chat bubbles from recent messages
-
-            # This part's for the chatting feature, we've made it for you.
-            # if self.online_manager:
-            #     try:
-            #         msgs = self.online_manager.get_recent_chat(50)
-            #         max_id = self._last_chat_id_seen
-            #         now = time.monotonic()
-            #         for m in msgs:
-            #             mid = int(m.get("id", 0))
-            #             if mid <= self._last_chat_id_seen:
-            #                 continue
-            #             sender = int(m.get("from", -1))
-            #             text = str(m.get("text", ""))
-            #             if sender >= 0 and text:
-            #                 self._chat_bubbles[sender] = (text, now + 5.0)
-            #             if mid > max_id:
-            #                 max_id = mid
-            #         self._last_chat_id_seen = max_id
-            #     except Exception:
-            #         pass
-            """
+            # checkpoint 3-3: 更新對話資料(助教已做好)
+            if self.online_manager:
+                try:
+                    msgs = self.online_manager.get_recent_chat(50)
+                    max_id = self._last_chat_id_seen
+                    now = time.monotonic()
+                    for m in msgs:
+                        mid = int(m.get("id", 0))
+                        if mid <= self._last_chat_id_seen:
+                            continue
+                        sender = int(m.get("from", -1))
+                        text = str(m.get("text", ""))
+                        if sender >= 0 and text:
+                            self._chat_bubbles[sender] = (text, now + 5.0)
+                        if mid > max_id:
+                            max_id = mid
+                    self._last_chat_id_seen = max_id
+                except Exception:
+                    pass
+         
             
             # checkpoint 3-3: 玩家增加 direction, is_moving 更新
             if self.game_manager.player is not None and self.online_manager is not None:
@@ -378,18 +389,20 @@ class GameScene(Scene):
             for player in list_online:
                 if player["map"] == self.game_manager.current_map.path_name:
                     camera = self.game_manager.player.camera
+
                     # checkpoint 3-3: 繪製其他線上玩家
                     for entity in self.remote_players.values():
                         entity.draw(screen, camera)
-                    #pos = camera.transform_position_as_position(Position(player["x"], player["y"]))
-                    #self.sprite_online.update_pos(pos)
-                    #self.sprite_online.draw(screen)
             try:
-                self._draw_chat_bubbles(...)
+                # checkpoint 3-3: 繪製對話
+                self._draw_chat_bubbles(screen, camera)
             except Exception:
                 pass
 
-        
+        # 繪製 Chat Overlay
+        if self.chat_overlay:
+            self.chat_overlay.draw(screen)
+
         ## menu, setting, bag buttons ##
         self.menu_button.draw(screen)
         self.setting_button.draw(screen)
@@ -412,34 +425,43 @@ class GameScene(Scene):
             screen.blit(log_txt, log_rect)
 
     def _draw_chat_bubbles(self, screen: pg.Surface, camera: PositionCamera) -> None:
+        if not self.online_manager:
+            return
         
-        # if not self.online_manager:
-        #     return
-        # REMOVE EXPIRED BUBBLES
-        # now = time.monotonic()
-        # expired = [pid for pid, (_, ts) in self._chat_bubbles.items() if ts <= now]
-        # for pid in expired:
-        #     self._chat_bubbles.____(..., ...)
-        # if not self._chat_bubbles:
-        #     return
+        # checkpoint 3-3: 移除過期的對話
+        now = time.monotonic()
+        expired = [pid for pid, (_, ts) in self._chat_bubbles.items() if ts <= now]
+        for pid in expired:
+            del self._chat_bubbles[pid]
+        if not self._chat_bubbles:
+            return
+        
+        font = self.font_item
 
-        # DRAW LOCAL PLAYER'S BUBBLE
-        # local_pid = self.____
-        # if self.game_manager.player and local_pid in self._chat_bubbles:
-        #     text, _ = self._chat_bubbles[...]
-        #     self._draw_bubble_for_pos(..., ..., ..., ..., ...)
+        # checkpoint 3-3: 繪製自己的對話氣泡
+        local_pid = self.online_manager.player_id
+        if self.game_manager.player and local_pid in self._chat_bubbles:
+            text, _ = self._chat_bubbles[local_pid]
+            self._draw_chat_bubble_for_pos(
+                screen, camera, 
+                self.game_manager.player.position, 
+                text, font
+            )
 
-        # DRAW OTHER PLAYERS' BUBBLES
-        # for pid, (text, _) in self._chat_bubbles.items():
-        #     if pid == local_pid:
-        #         continue
-        #     pos_xy = self._online_last_pos.____(..., ...)
-        #     if not pos_xy:
-        #         continue
-        #     px, py = pos_xy
-        #     self._draw_bubble_for_pos(..., ..., ..., ..., ...)
+        # checkpoint 3-3: 繪製其他玩家的對話氣泡
+        for pid, (text, _) in self._chat_bubbles.items():
+            if pid == local_pid:
+                continue
+            
+            # 從 remote_players 找到該玩家的 Entity
+            if pid in self.remote_players:
+                remote_ent = self.remote_players[pid]
+                self._draw_chat_bubble_for_pos(
+                    screen, camera, 
+                    remote_ent.position, 
+                    text, font
+                )
 
-        pass
         """
         DRAWING CHAT BUBBLES:
         - When a player sends a chat message, the message should briefly appear above
@@ -478,8 +500,37 @@ class GameScene(Scene):
         - For each player with a message, maybe you can call a helper to actually draw a single bubble?
         """
 
+    # checkpoint 3-3: 根據 pos 繪製氣泡
     def _draw_chat_bubble_for_pos(self, screen: pg.Surface, camera: PositionCamera, world_pos: Position, text: str, font: pg.font.Font):
-        pass
+        rect_screen = camera.transform_rect(pg.Rect(world_pos.x, world_pos.y, GameSettings.TILE_SIZE, GameSettings.TILE_SIZE))
+        
+        # 氣泡座標
+        center_x = rect_screen.centerx
+        bottom_y = rect_screen.top - 10
+
+        text_surf = font.render(text, True, (0, 0, 0))
+        w, h = text_surf.get_size()
+
+        # 氣泡背景
+        padding = 8
+        bubble_rect = pg.Rect(0, 0, w + padding * 2, h + padding * 2)
+        bubble_rect.centerx = center_x
+        bubble_rect.bottom = bottom_y
+        pg.draw.rect(screen, (255, 255, 255), bubble_rect, 0, 8)
+        pg.draw.rect(screen, (0, 0, 0), bubble_rect, 2, 8)
+
+        tri_points = [
+            (center_x - 5, bubble_rect.bottom),
+            (center_x + 5, bubble_rect.bottom),
+            (center_x, bubble_rect.bottom + 6)
+        ]
+        pg.draw.polygon(screen, (255, 255, 255), tri_points)
+        pg.draw.polygon(screen, (0, 0, 0), tri_points, 2)
+
+        # 繪製文字
+        text_rect = text_surf.get_rect(center=bubble_rect.center)
+        screen.blit(text_surf, text_rect)
+
         """
         Steps:
             ------------------
