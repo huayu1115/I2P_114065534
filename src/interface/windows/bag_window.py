@@ -26,7 +26,7 @@ class BagWindow(Window):
         self.btn_item_prev = Button(
             "UI/button_back.png",
             "UI/button_back_hover.png",
-            self.rect.centerx - 185, self.rect.bottom - 50,
+            self.rect.centerx - 195, self.rect.bottom - 50,
             35, 35,
             on_click=self.prev_item_page
         )
@@ -34,7 +34,7 @@ class BagWindow(Window):
         self.btn_item_next = Button(
             "UI/button_play.png",
             "UI/button_play_hover.png",
-            self.rect.centerx - 160, self.rect.bottom - 50,
+            self.rect.centerx - 150, self.rect.bottom - 50,
             35, 35,
             on_click=self.next_item_page
         )
@@ -42,7 +42,7 @@ class BagWindow(Window):
         self.btn_monster_prev = Button(
             "UI/button_back.png",
             "UI/button_back_hover.png",
-            self.rect.centerx + 110, self.rect.bottom - 50,
+            self.rect.centerx + 100, self.rect.bottom - 50,
             35, 35,
             on_click=self.prev_monster_page
         )
@@ -50,7 +50,7 @@ class BagWindow(Window):
         self.btn_monster_next = Button(
             "UI/button_play.png",
             "UI/button_play_hover.png",
-            self.rect.centerx + 135, self.rect.bottom - 50,
+            self.rect.centerx + 145, self.rect.bottom - 50,
             35, 35,
             on_click=self.next_monster_page
         )
