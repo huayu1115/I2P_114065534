@@ -3,6 +3,8 @@ import time
 from dataclasses import dataclass
 from typing import Dict
 
+from src.utils import Direction
+
 TIMEOUT_TIME = 60.0
 CHECK_INTERVAL_TIME = 10.0
 
@@ -21,15 +23,21 @@ class Player:
     y: float
     map: str
     last_update: float
+    
+    # checkpoint 3-3: Online Interaction
+    direction: str = "down"
+    is_moving: bool = False
 
     # HINT: This part might be helpful for direction change
     # Maybe you can add other parameters? 
-    def update(self, x: float, y: float, map: str) -> None:
+    def update(self, x: float, y: float, map: str, direction: str = "down", is_moving: bool = False) -> None:
         if x != self.x or y != self.y or map != self.map:
             self.last_update = time.monotonic()
         self.x = x
         self.y = y
         self.map = map
+        self.direction = direction
+        self.is_moving = is_moving
 
     def is_inactive(self) -> bool:
         now = time.monotonic()
@@ -94,7 +102,7 @@ class PlayerHandler:
                 return True
             return False
 
-    def update(self, pid: int, x: float, y: float, map_name: str) -> bool:
+    def update(self, pid: int, x: float, y: float, map_name: str, direction: str = "down", is_moving: bool = False) -> bool:
         with self._lock:
             p = self.players.get(pid)
             if not p:
@@ -102,7 +110,7 @@ class PlayerHandler:
             else:
                 # HINT: This part might be helpful for direction change
                 # Maybe you can add other parameters? 
-                p.update(float(x), float(y), str(map_name))
+                p.update(float(x), float(y), str(map_name), str(direction), bool(is_moving))
                 return True
 
     def list_players(self) -> dict:
@@ -115,6 +123,8 @@ class PlayerHandler:
                     "id": p.id,
                     "x": p.x,
                     "y": p.y,
-                    "map": p.map
+                    "map": p.map,
+                    "direction": p.direction,
+                    "is_moving": p.is_moving
                 }
             return player_list

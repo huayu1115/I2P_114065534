@@ -70,7 +70,7 @@ class OnlineManager:
         with self._lock:
             return list(self.list_players)
 
-    def update(self, x: float, y: float, map_name: str) -> bool:
+    def update(self, x: float, y: float, map_name: str, direction: str, is_moving: bool) -> bool:
         """Queue position update (no dir / moving)."""
         if self.player_id == -1:
             return False
@@ -81,6 +81,8 @@ class OnlineManager:
                 "x": x,
                 "y": y,
                 "map": map_name,
+                "direction": direction,
+                "is_moving": is_moving
             })
             return True
         except queue.Full:
@@ -197,6 +199,8 @@ class OnlineManager:
                                 "x": float(player_data.get("x", 0)),
                                 "y": float(player_data.get("y", 0)),
                                 "map": str(player_data.get("map", "")),
+                                "direction": str(player_data.get("direction", "down")),
+                                "is_moving": bool(player_data.get("is_moving", False)),
                             })
                     self.list_players = filtered
 
@@ -243,6 +247,8 @@ class OnlineManager:
                             "x": latest_update.get("x"),
                             "y": latest_update.get("y"),
                             "map": latest_update.get("map"),
+                            "direction": latest_update.get("direction"),
+                            "is_moving": latest_update.get("is_moving"),
                         }
                         await websocket.send(json.dumps(message))
                         last_update = now

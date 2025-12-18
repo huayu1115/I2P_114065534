@@ -18,6 +18,10 @@ from src.interface.windows.bag_window import BagWindow
 from src.interface.windows.setting_window import SettingWindow
 from src.interface.windows.shop_window import ShopWindow
 
+from src.entities.entity import Entity
+from src.utils import Direction
+from src.interface.components.chat_overlay import ChatOverlay
+
 class GameScene(Scene):
     game_manager: GameManager
     online_manager: OnlineManager | None
@@ -50,10 +54,14 @@ class GameScene(Scene):
         # Online Manager
         if GameSettings.IS_ONLINE:
             self.online_manager = OnlineManager()
+            #self.chat_overlay = ChatOverlay(
+            #    send_callback=..., # send chat method
+            #    get_messages=..., # get chat messages method
+            #)
         else:
             self.online_manager = None
-        self.sprite_online = Sprite("ingame_ui/options1.png", (GameSettings.TILE_SIZE, GameSettings.TILE_SIZE))
-
+        self.remote_players: dict[int, Entity] = {} # 存 id 對應的 Entity
+        
         ## 字型
         self.font_title = pg.font.Font("././assets/fonts/Pokemon Solid.ttf", 30)
         self.font_item = pg.font.Font("././assets/fonts/Minecraft.ttf", 20)
@@ -242,13 +250,100 @@ class GameScene(Scene):
 
             # Update others
             self.game_manager.bag.update(dt)
+
+            """
+            TODO: UPDATE CHAT OVERLAY:
+
+            # if self._chat_overlay:
+            #     if _____.key_pressed(...):
+            #         self._chat_overlay.____
+            #     self._chat_overlay.update(____)
+            # Update chat bubbles from recent messages
+
+            # This part's for the chatting feature, we've made it for you.
+            # if self.online_manager:
+            #     try:
+            #         msgs = self.online_manager.get_recent_chat(50)
+            #         max_id = self._last_chat_id_seen
+            #         now = time.monotonic()
+            #         for m in msgs:
+            #             mid = int(m.get("id", 0))
+            #             if mid <= self._last_chat_id_seen:
+            #                 continue
+            #             sender = int(m.get("from", -1))
+            #             text = str(m.get("text", ""))
+            #             if sender >= 0 and text:
+            #                 self._chat_bubbles[sender] = (text, now + 5.0)
+            #             if mid > max_id:
+            #                 max_id = mid
+            #         self._last_chat_id_seen = max_id
+            #     except Exception:
+            #         pass
+            """
             
+            # checkpoint 3-3: 玩家增加 direction, is_moving 更新
             if self.game_manager.player is not None and self.online_manager is not None:
+                player = self.game_manager.player
+
+                dir_str = player.direction.name.lower()
+                is_moving = player.dis.x != 0 or player.dis.y != 0
+
                 _ = self.online_manager.update(
                     self.game_manager.player.position.x, 
                     self.game_manager.player.position.y,
-                    self.game_manager.current_map.path_name
+                    self.game_manager.current_map.path_name,
+                    dir_str,
+                    is_moving
                 )
+
+            # checkpoint 3-3: 同步其他玩家
+            if self.online_manager:
+                list_online = self.online_manager.get_list_players()
+                current_map_name = self.game_manager.current_map.path_name
+                valid_ids = set() # 記錄這幀還在的玩家
+
+                for p_data in list_online:
+                    # 只處理同一張地圖的玩家
+                    if p_data["map"] != current_map_name:
+                        continue
+                    
+                    pid = p_data["id"]
+                    valid_ids.add(pid)
+
+                    # 若是新玩家就創建一個 Entity
+                    if pid not in self.remote_players:
+                        self.remote_players[pid] = Entity(
+                            p_data["x"], p_data["y"], self.game_manager, "character/ow1.png"
+                        )
+                    
+                    # 取得該玩家的 Entity
+                    remote_ent = self.remote_players[pid]
+                    
+                    # 同步位置
+                    remote_ent.position.x = p_data["x"]
+                    remote_ent.position.y = p_data["y"]
+                    
+                    # 同步方向 (將字串轉回 Enum)
+                    d_str = p_data.get("direction", "down")
+                    if d_str == "up": remote_ent.direction = Direction.UP
+                    elif d_str == "down": remote_ent.direction = Direction.DOWN
+                    elif d_str == "left": remote_ent.direction = Direction.LEFT
+                    elif d_str == "right": remote_ent.direction = Direction.RIGHT
+                    
+                    # 同步動畫狀態
+                    remote_is_moving = p_data.get("is_moving", False)
+                    if remote_is_moving:
+                        remote_ent.update(dt) # 移動: 正常更新動畫
+                    else:
+                        remote_ent.update(0)  # 靜止: 只更新方向
+                        remote_ent.animation.accumulator = 0 # 強制重置為第一幀 (站立姿勢)
+
+                # 清除已經離開或切換地圖的玩家
+                for pid in list(self.remote_players.keys()):
+                    if pid not in valid_ids:
+                        del self.remote_players[pid]
+
+
         
     @override
     def draw(self, screen: pg.Surface):        
@@ -275,15 +370,24 @@ class GameScene(Scene):
             merchant.draw(screen, camera)
 
         self.game_manager.bag.draw(screen)
+        #if self._chat_overlay:
+        #    self._chat_overlay.draw(screen)
         
         if self.online_manager and self.game_manager.player:
             list_online = self.online_manager.get_list_players()
             for player in list_online:
                 if player["map"] == self.game_manager.current_map.path_name:
                     camera = self.game_manager.player.camera
-                    pos = camera.transform_position_as_position(Position(player["x"], player["y"]))
-                    self.sprite_online.update_pos(pos)
-                    self.sprite_online.draw(screen)
+                    # checkpoint 3-3: 繪製其他線上玩家
+                    for entity in self.remote_players.values():
+                        entity.draw(screen, camera)
+                    #pos = camera.transform_position_as_position(Position(player["x"], player["y"]))
+                    #self.sprite_online.update_pos(pos)
+                    #self.sprite_online.draw(screen)
+            try:
+                self._draw_chat_bubbles(...)
+            except Exception:
+                pass
 
         
         ## menu, setting, bag buttons ##
@@ -306,3 +410,85 @@ class GameScene(Scene):
             s.fill((0,0,0))
             screen.blit(s, bg_rect.topleft)
             screen.blit(log_txt, log_rect)
+
+    def _draw_chat_bubbles(self, screen: pg.Surface, camera: PositionCamera) -> None:
+        
+        # if not self.online_manager:
+        #     return
+        # REMOVE EXPIRED BUBBLES
+        # now = time.monotonic()
+        # expired = [pid for pid, (_, ts) in self._chat_bubbles.items() if ts <= now]
+        # for pid in expired:
+        #     self._chat_bubbles.____(..., ...)
+        # if not self._chat_bubbles:
+        #     return
+
+        # DRAW LOCAL PLAYER'S BUBBLE
+        # local_pid = self.____
+        # if self.game_manager.player and local_pid in self._chat_bubbles:
+        #     text, _ = self._chat_bubbles[...]
+        #     self._draw_bubble_for_pos(..., ..., ..., ..., ...)
+
+        # DRAW OTHER PLAYERS' BUBBLES
+        # for pid, (text, _) in self._chat_bubbles.items():
+        #     if pid == local_pid:
+        #         continue
+        #     pos_xy = self._online_last_pos.____(..., ...)
+        #     if not pos_xy:
+        #         continue
+        #     px, py = pos_xy
+        #     self._draw_bubble_for_pos(..., ..., ..., ..., ...)
+
+        pass
+        """
+        DRAWING CHAT BUBBLES:
+        - When a player sends a chat message, the message should briefly appear above
+        that player's character in the world, similar to speech bubbles in RPGs.
+        - Each bubble should last only a few seconds before fading or disappearing.
+        - Only players currently visible on the map should show bubbles.
+
+         What you need to think about:
+            ------------------------------
+            1. **Which players currently have messages?**
+            You will have a small structure mapping player IDs to the text they sent
+            and the time the bubble should disappear.
+
+            2. **How do you know where to place the bubble?**
+            The bubble belongs above the player's *current position in the world*.
+            The game already tracks each player’s world-space location.
+            Convert that into screen-space and draw the bubble there.
+
+            3. **How should bubbles look?**
+            You decide. The visual style is up to you:
+            - A rounded rectangle, or a simple box.
+            - Optional border.
+            - A small triangle pointing toward the character's head.
+            - Enough padding around the text so it looks readable.
+
+            4. **How do bubbles disappear?**
+            Compare the current time to the stored expiration timestamp.
+            Remove any bubbles that have expired.
+
+            5. **In what order should bubbles be drawn?**
+            Draw them *after* world objects but *before* UI overlays.
+
+        Reminder:
+        - For the local player, you can use the self.game_manager.player.position to get the player's position
+        - For other players, maybe you can find some way to store other player's last position?
+        - For each player with a message, maybe you can call a helper to actually draw a single bubble?
+        """
+
+    def _draw_chat_bubble_for_pos(self, screen: pg.Surface, camera: PositionCamera, world_pos: Position, text: str, font: pg.font.Font):
+        pass
+        """
+        Steps:
+            ------------------
+            1. Convert a player’s world position into a location on the screen.
+            (Use the camera system provided by the game engine.)
+
+            2. Decide where "above the player" is.
+            Typically a little above the sprite’s head.
+
+            3. Measure the rendered text to determine bubble size.
+            Add padding around the text.
+        """
