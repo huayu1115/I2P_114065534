@@ -18,6 +18,7 @@ from src.interface.windows.menu_window import MenuWindow
 from src.interface.windows.bag_window import BagWindow
 from src.interface.windows.setting_window import SettingWindow
 from src.interface.windows.shop_window import ShopWindow
+from src.interface.windows.navigation_window import NavigationWindow
 
 from src.entities.entity import Entity
 from src.utils import Direction
@@ -47,6 +48,10 @@ class GameScene(Scene):
     _chat_bubbles: dict[int, tuple[str, float]]
     _last_chat_id_seen: int
     chat_overlay: ChatOverlay | None
+    
+    '''check point 3 -6: 導航'''
+    nav_button: Button
+    nav_window: NavigationWindow
     
     def __init__(self):
         super().__init__()
@@ -121,10 +126,22 @@ class GameScene(Scene):
             on_click = self.bag_window.toggle
         )
 
+        ## check point 3 - 6: 初始化導航 ##
+        self.nav_window = NavigationWindow(self.game_manager, self.font_title, self.font_item)
+
+        self.nav_button = Button(
+            "UI/button_play.png", 
+            "UI/button_play_hover.png",
+            px - 50, py - 200,
+            35, 35,
+            on_click=self.nav_window.toggle
+        )
+
+
         ## check point 3-2: Shop Overlay 初始化 shop ##
         self.shop_window = ShopWindow(self.game_manager, self.font_title, self.font_item)
         ## check point 3-5: 初始化小地圖 ##
-        self.minimap = Minimap(self.game_manager)
+        self.minimap = Minimap(self.game_manager, self.font_item)
 
 
     ## 當 SettingWindow 讀取存檔後，會呼叫此函式來更新所有場景中的參照 ##
@@ -160,6 +177,7 @@ class GameScene(Scene):
         self.menu_button.update(dt)
         self.setting_button.update(dt)
         self.bag_button.update(dt)
+        self.nav_button.update(dt)
 
         if self.log_timer > 0:
             self.log_timer -= dt
@@ -177,6 +195,9 @@ class GameScene(Scene):
 
         elif self.shop_window.is_open:
             self.shop_window.update(dt)
+
+        elif self.nav_window.is_open:
+            self.nav_window.update(dt)
 
         elif self.chat_overlay and self.chat_overlay.is_open:
             self.chat_overlay.update(dt)
@@ -412,16 +433,18 @@ class GameScene(Scene):
         if not self.bag_window.is_open and not self.menu_window.is_open:
             self.minimap.draw(screen)
 
-        ## menu, setting, bag buttons ##
+        ## buttons ##
         self.menu_button.draw(screen)
         self.setting_button.draw(screen)
         self.bag_button.draw(screen)
+        self.nav_button.draw(screen)
 
-        ## menu, setting, bag window ##
+        ## window ##
         self.menu_window.draw(screen)
         self.setting_window.draw(screen)
         self.bag_window.draw(screen)
         self.shop_window.draw(screen)
+        self.nav_window.draw(screen)
 
         if self.log_text:
             log_txt = self.font_item.render(self.log_text, True, (255, 255, 255))

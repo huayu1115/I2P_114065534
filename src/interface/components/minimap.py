@@ -2,8 +2,9 @@ import pygame as pg
 from src.utils import GameSettings, PositionCamera
 
 class Minimap:
-    def __init__(self, game_manager, width=200, height=150):
+    def __init__(self, game_manager, font: pg.font.Font, width=200, height=150):
         self.game_manager = game_manager
+        self.font = font
         
         # 小地圖的尺寸
         self.w = width
@@ -104,3 +105,19 @@ class Minimap:
         
         # 畫出框框
         pg.draw.rect(screen, self.camera_rect_color, (rect_x, rect_y, rect_w, rect_h), 1)
+
+        # 將像素座標轉換為網格座標
+        grid_x = int(player.position.x // GameSettings.TILE_SIZE)
+        grid_y = int(player.position.y // GameSettings.TILE_SIZE)
+        
+        coord_text = f"Pos: ({grid_x}, {grid_y})"
+        
+        # 繪製文字
+        text_surf = self.font.render(coord_text, True, (255, 255, 255))
+        shadow_surf = self.font.render(coord_text, True, (0, 0, 0))
+        
+        text_pos_x = self.x
+        text_pos_y = self.y + self.h + 5 
+        
+        screen.blit(shadow_surf, (text_pos_x + 1, text_pos_y + 1))
+        screen.blit(text_surf, (text_pos_x, text_pos_y))
