@@ -143,8 +143,8 @@ class BagWindow(Window):
             base_y = self.rect.y + 120 + (i * self.item_height)
             
             # 1. 畫格子 (寬度設稍微窄一點 220，區分左右)
-            bg_rect = pg.Rect(self.rect.x + 30, base_y, 220, 50)
-            pg.draw.rect(screen, (255, 255, 255), bg_rect, border_radius=5) # 白底
+            bg_rect = pg.Rect(self.rect.x + 30, base_y, 250, 50)
+            pg.draw.rect(screen, (215, 215, 215), bg_rect, border_radius=5) # 白底
             pg.draw.rect(screen, (100, 100, 100), bg_rect, 2, border_radius=5) # 灰框
 
             # 2. 準備資料
@@ -198,7 +198,7 @@ class BagWindow(Window):
             # 格子
             base_y = self.rect.y + 120 + (i * self.item_height)
             bg_rect = pg.Rect(self.rect.centerx + 20, base_y, 250, 50)
-            pg.draw.rect(screen, (255, 255, 255), bg_rect, border_radius=5)
+            pg.draw.rect(screen, (215, 215, 215), bg_rect, border_radius=5)
             pg.draw.rect(screen, (100, 100, 100), bg_rect, 2, border_radius=5)
 
             # 資料

@@ -3,13 +3,13 @@
     {
       "path": "map.tmx",
       "enemy_trainers": [
-        { "x": 24, "y": 29, "classification": "stationary", "facing": "DOWN", "max_tiles": 2 },
-        { "x": 54, "y": 16, "classification": "stationary", "facing": "UP", "max_tiles": 2 },
-        { "x": 31, "y": 31, "classification": "stationary", "facing": "UP", "max_tiles": 2 }
+        { "x": 24, "y": 29, "classification": "stationary", "facing": "DOWN", "max_tiles": 2, "id": "Kieran"},
+        { "x": 54, "y": 16, "classification": "stationary", "facing": "UP", "max_tiles": 2, "id": "Mira"},
+        { "x": 31, "y": 31, "classification": "stationary", "facing": "UP", "max_tiles": 2, "id": "Quinn"}
       ],
       "merchants": [
         { "x": 22, "y": 29, "facing": "DOWN", "max_tiles": 2,
-          "goods": ["potion", "pokeball"]
+          "goods": ["heal potion", "strength potion", "defense potion", "pokeball", "Level-up Candy"]
         }
       ],
       "teleport": [
@@ -46,8 +46,11 @@
       "roaming_mobs": [],
       "enemy_trainers": [],
       "merchants": [
-        { "x": 7, "y": 5, "facing": "DOWN", "max_tiles": 2,
-          "goods": ["potion", "pokeball"]
+        { "x": 6, "y": 5, "facing": "DOWN", "max_tiles": 2,
+          "goods": ["heal potion", "strength potion", "defense potion"]
+        },
+        { "x": 8, "y": 5, "facing": "DOWN", "max_tiles": 2,
+          "goods": ["pokeball", "Level-up Candy"]
         }
       ],
       "player": {
@@ -63,14 +66,15 @@
   },
   "bag": {
     "monsters": [
-      { "name": "Sproutkit", "level": 15, "hp": 40, "exp": 1200 },
-      { "name": "Leafpard",  "level": 32, "hp": 0,  "exp": 5000 },
-      { "name": "Leafpard",  "level": 32, "hp": 60,  "exp": 5000 }
+      { "name": "Sproutkit", "level": 17, "hp": 40, "exp": 1200 },
+      { "name": "Dreamweaver",  "level": 20, "hp": 10,  "exp": 5000 },
+      { "name": "Sonic-Fin",  "level": 25, "hp": 90,  "exp": 5000 },
+      { "name": "Infernotank",  "level": 38, "hp": 120,  "exp": 5000 }
 
     ],
     "items": [
-      { "name": "Potion",      "count": 5,  "sprite_path": "ingame_ui/potion.png" },
-      { "name": "Coins",       "count": 20,  "sprite_path": "ingame_ui/coin.png" },
+      { "name": "Heal Potion",      "count": 5,  "sprite_path": "ingame_ui/potion.png" },
+      { "name": "Coins",       "count": 40,  "sprite_path": "ingame_ui/coin.png" },
       { "name": "Pokeball",    "count": 10, "sprite_path": "ingame_ui/ball.png" }
     ]
   }

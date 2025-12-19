@@ -1,12 +1,27 @@
 {
-  "potion": {
-    "name": "Potion",
-    "price": 5,
+  "heal potion": {
+    "name": "Heal Potion",
+    "price": 6,
+    "sprite_path": "ingame_ui/potion.png"
+  },
+  "strength potion": {
+    "name": "Strength Potion",
+    "price": 8,
+    "sprite_path": "ingame_ui/potion.png"
+  },
+  "defense potion": {
+    "name": "Defense Potion",
+    "price": 8,
     "sprite_path": "ingame_ui/potion.png"
   },
   "pokeball": {
     "name": "Pokeball",
-    "price": 2,
+    "price": 4,
     "sprite_path": "ingame_ui/ball.png"
+  },
+  "level-up candy": {
+    "name": "Level-up Candy",
+    "price": 20,
+    "sprite_path": "ingame_ui/baricon4.png"
   }
 }
