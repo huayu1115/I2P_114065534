@@ -93,7 +93,7 @@
   },
   "Infernotank": {
     "name": "Infernotank",
-    "type": "grass",
+    "type": "fire",
     "base_hp": 70,
     "base_attack": 88,
     "base_defense": 50,

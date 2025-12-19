@@ -59,12 +59,15 @@ class BattleScene(Scene):
         self.log_text = ""
 
         # UI 元件
-        self.hp_bar = HealthBar("./assets/fonts/Minecraft.ttf", 24)
+        self.hp_bar = HealthBar("./assets/fonts/Minecraft.ttf", 20)
         self.dashboard = BattleDashboard(
             self.font,
             on_fight=self.player_attack,
             on_switch=self.switch_monster,
             on_run=self.run_away,
+            on_heal=self.on_use_heal_potion,
+            on_power=self.on_use_power_potion,
+            on_def=self.on_use_def_potion,
             on_catch=self.try_catch_monster
         )
 
@@ -186,20 +189,36 @@ class BattleScene(Scene):
         self._switch_monster(found_index)
         self.state = BattleState.ENEMY_TURN
         self.turn_timer = 0
-
-    ## 戰鬥結束處理 (資料回寫) ##
-    def _end_battle(self):
-        if self.player and self.player.data:
-            self.player.data["hp"] = self.player.hp
-            Logger.info(f"Battle ended. HP saved: {self.player.hp}")
-        scene_manager.change_scene("game")
-
     
-   
-   
+    # checkpoint 3-4: 藥水功能，搭配 _use_item 輔助函式
+    def on_use_heal_potion(self):
+        def effect():
+            heal_amount = 50 # 設定回復量
+            old_hp = self.player.hp
+            self.player.hp += heal_amount
+            if self.player.hp > self.player.max_hp:
+                self.player.hp = self.player.max_hp
+            recovered = self.player.hp - old_hp
+            return f"Used Healing Potion! Recovered {recovered} HP."
 
+        self._use_item("Heal Potion", effect)
 
-        
+    def on_use_power_potion(self):
+        def effect():
+            boost = 10 # 設定攻擊提升量
+            self.player.attack += boost
+            return f"Used Strength Potion! Attack rose by {boost}!"
+            
+        self._use_item("Strength Potion", effect)
+
+    def on_use_def_potion(self):
+        def effect():
+            boost = 10 # 設定防禦提升量
+            self.player.defense += boost
+            return f"Used Defense Potion! Defense rose by {boost}!"
+
+        self._use_item("Defense Potion", effect)
+
     ## update 支援四種狀態 ##
     def update(self, dt: float):
         if self.state == BattleState.PLAYER_TURN:
@@ -224,24 +243,22 @@ class BattleScene(Scene):
             self.enemy.draw(screen)
             rect = self.enemy.sprite.rect if self.enemy.sprite else pg.Rect(0,0,0,0)
             enemy_name_display = f"Lv.{self.enemy.level} {self.enemy.name}"
-            self.hp_bar.draw(screen, rect.x + 10, 70, self.enemy.hp, self.enemy.max_hp, enemy_name_display)
+            self.hp_bar.draw(screen, rect.x + 10, 70, self.enemy.hp, self.enemy.max_hp, enemy_name_display, self.enemy.type)
             
         ## 繪製玩家 ##
         if self.player:
             self.player.draw(screen)
             rect = self.player.sprite.rect if self.player.sprite else pg.Rect(0,0,0,0)
             player_name_display = f"Lv.{self.player.level} {self.player.name}"
-            self.hp_bar.draw(screen, rect.x + 50, rect.top + 80, self.player.hp, self.player.max_hp, player_name_display)
+            self.hp_bar.draw(screen, rect.x + 50, rect.top + 80, self.player.hp, self.player.max_hp, player_name_display, self.player.type)
 
         ## 戰鬥訊息 ##
         if self.log_text:
             self._draw_log_text(screen)
 
-
+    # checkpoint 3-4: 計算屬性相剋的傷害
     def _calculate_damage(self, attacker: Monster, defender: Monster) -> tuple[int, str]:
-        """
-        傷害計算公式，回傳 (final_damage, log_message_suffix)
-        """
+        """傷害計算，回傳 (final_damage, log_message_suffix)"""
         base_dmg = int(max(1, attacker.attack - defender.defense))
         
         attacker_type = attacker.type
@@ -328,3 +345,42 @@ class BattleScene(Scene):
         
         screen.blit(s, bg_rect.topleft)
         screen.blit(log_txt, log_rect)
+
+    ## 戰鬥結束處理 (資料回寫) ##
+    def _end_battle(self):
+        if self.player and self.player.data:
+            self.player.data["hp"] = self.player.hp
+            Logger.info(f"Battle ended. HP saved: {self.player.hp}")
+        scene_manager.change_scene("game")
+
+
+    # checkpoint 3-4: 道具使用輔助函式
+    def _use_item(self, item_name: str, effect_callback):
+        if self.state != BattleState.PLAYER_TURN or not self.player:
+            return
+
+        # 從背包找道具
+        bag_items = self.game_manager.bag._items_data
+        item = next((i for i in bag_items if i["name"] == item_name), None)
+
+        if not item or item.get("count", 0) <= 0:
+            self.log_text = f"You don't have any {item_name}!"
+            return
+
+        # 執行具體效果
+        success_msg = effect_callback()
+        
+        # 扣除道具
+        item["count"] -= 1
+        if item["count"] <= 0:
+            bag_items.remove(item)
+
+        Logger.info(f"Used {item_name}. Remaining: {item['count']}")
+        
+        # 設定訊息並切換回合
+        self.log_text = success_msg
+        self.state = BattleState.ENEMY_TURN
+        self.turn_timer = 0
+        
+        # 使用完道具後，讓 dashboard 回到主選單
+        self.dashboard.back_to_main()
