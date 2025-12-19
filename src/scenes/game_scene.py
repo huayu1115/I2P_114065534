@@ -11,6 +11,7 @@ from src.core.services import sound_manager
 from src.sprites import Sprite
 from typing import override
 from src.interface.components import Button
+from src.interface.components.minimap import Minimap
 from src.core.services import input_manager, scene_manager
 
 from src.interface.windows.menu_window import MenuWindow
@@ -120,8 +121,11 @@ class GameScene(Scene):
             on_click = self.bag_window.toggle
         )
 
-        ## check point 3 -2: Shop Overlay 初始化 shop ##
+        ## check point 3-2: Shop Overlay 初始化 shop ##
         self.shop_window = ShopWindow(self.game_manager, self.font_title, self.font_item)
+        ## check point 3-5: 初始化小地圖 ##
+        self.minimap = Minimap(self.game_manager)
+
 
     ## 當 SettingWindow 讀取存檔後，會呼叫此函式來更新所有場景中的參照 ##
     def on_game_reload(self, new_manager: GameManager):
@@ -403,6 +407,10 @@ class GameScene(Scene):
         # 繪製 Chat Overlay
         if self.chat_overlay:
             self.chat_overlay.draw(screen)
+
+        # 繪製小地圖
+        if not self.bag_window.is_open and not self.menu_window.is_open:
+            self.minimap.draw(screen)
 
         ## menu, setting, bag buttons ##
         self.menu_button.draw(screen)
