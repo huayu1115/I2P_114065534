@@ -91,6 +91,10 @@ class BattleScene(Scene):
         self.state = BattleState.PLAYER_TURN
         self.turn_timer = 0
 
+        # 重置戰鬥結算狀態
+        self.message_queue = [] 
+        self.waiting_input = False
+
     def enter(self):
         """場景進入時，載入玩家隊伍資料"""
         if self.game_manager is None:
