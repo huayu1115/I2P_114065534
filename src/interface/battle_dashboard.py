@@ -76,6 +76,10 @@ class BattleDashboard:
             self.btn_back.update(dt)
 
     def draw(self, screen: pg.Surface):
+
+        pg.draw.rect(screen, (40, 40, 40), self.rect)
+        pg.draw.rect(screen, (255, 255, 255), self.rect, 3)
+
         if self.menu_state == 'MAIN':
             # 畫主選單按鈕
             self.btn_fight.draw(screen)

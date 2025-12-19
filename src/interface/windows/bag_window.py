@@ -18,42 +18,35 @@ class BagWindow(Window):
         self.sprite_cache = {}
 
         # 頁面相關
-        self.items_per_page = 6
-        self.item_height = 55 
+        self.items_per_page = 4
+        self.item_height = 80
         self.current_item_page = 0
         self.current_monster_page = 0
 
-        self.btn_item_prev = Button(
-            "UI/button_back.png",
-            "UI/button_back_hover.png",
-            self.rect.centerx - 195, self.rect.bottom - 50,
-            35, 35,
-            on_click=self.prev_item_page
-        )
+        btn_y = self.rect.bottom - 45
         
+        self.btn_item_prev = Button(
+            "UI/button_back.png", "UI/button_back_hover.png",
+            self.rect.centerx - 195, btn_y-10, 35, 35, on_click=self.prev_item_page
+        )
         self.btn_item_next = Button(
-            "UI/button_play.png",
-            "UI/button_play_hover.png",
-            self.rect.centerx - 150, self.rect.bottom - 50,
-            35, 35,
-            on_click=self.next_item_page
+            "UI/button_play.png", "UI/button_play_hover.png",
+            self.rect.centerx - 150, btn_y-10, 35, 35, on_click=self.next_item_page
+        )
+        self.btn_monster_prev = Button(
+            "UI/button_back.png", "UI/button_back_hover.png",
+            self.rect.centerx + 100, btn_y-10, 35, 35, on_click=self.prev_monster_page
+        )
+        self.btn_monster_next = Button(
+            "UI/button_play.png", "UI/button_play_hover.png",
+            self.rect.centerx + 145, btn_y-10, 35, 35, on_click=self.next_monster_page
         )
 
-        self.btn_monster_prev = Button(
-            "UI/button_back.png",
-            "UI/button_back_hover.png",
-            self.rect.centerx + 100, self.rect.bottom - 50,
-            35, 35,
-            on_click=self.prev_monster_page
-        )
-        
-        self.btn_monster_next = Button(
-            "UI/button_play.png",
-            "UI/button_play_hover.png",
-            self.rect.centerx + 145, self.rect.bottom - 50,
-            35, 35,
-            on_click=self.next_monster_page
-        )
+        self.TYPE_COLORS = {
+           "grass": (120, 200, 80),   # 綠
+            "fire": (240, 128, 48),    # 紅
+            "water": (104, 144, 240),  # 藍
+        }
 
     # 物品翻頁邏輯 
     def prev_item_page(self):
@@ -86,10 +79,9 @@ class BagWindow(Window):
                 self.sprite_cache[path] = img
             except Exception as e:
                 Logger.warning(f"Failed to load sprite {path}: {e}")
-                surf = pg.Surface((size, size)) # 產生一個替代用的色塊
+                surf = pg.Surface((size, size))
                 surf.fill((150, 150, 150))
                 self.sprite_cache[path] = surf
-        
         return self.sprite_cache[path]
     
     def update(self, dt: float):
@@ -137,46 +129,42 @@ class BagWindow(Window):
         i_end = i_start + self.items_per_page
         page_items = all_items[i_start:i_end]
 
-        # 繪製物品 (包含格子)
+        ## 繪製物品 ##
         for i, item in enumerate(page_items):
             # 計算統一的 Y 座標
-            base_y = self.rect.y + 120 + (i * self.item_height)
+            base_y = self.rect.y + 120 + (i * self.item_height) 
             
-            # 1. 畫格子 (寬度設稍微窄一點 220，區分左右)
-            bg_rect = pg.Rect(self.rect.x + 30, base_y, 250, 50)
-            pg.draw.rect(screen, (215, 215, 215), bg_rect, border_radius=5) # 白底
-            pg.draw.rect(screen, (100, 100, 100), bg_rect, 2, border_radius=5) # 灰框
+            # 底框
+            bg_rect = pg.Rect(self.rect.x + 30, base_y, 250, self.item_height - 10)
+            pg.draw.rect(screen, (225, 225, 225), bg_rect, border_radius=8)
+            pg.draw.rect(screen, (100, 100, 100), bg_rect, 2, border_radius=8)
 
-            # 2. 準備資料
             item_name = item.get("name", "Unknown")
             item_count = item.get("count", 1)
             sprite_path = item.get("sprite_path", None)
 
-            # 3. 畫 Icon
-            icon_size = 35
-            icon_x = self.rect.x + 40
-            icon_y_offset = (50 - icon_size) // 2
+            # Icon
+            icon_size = 50
+            icon_x = self.rect.x + 45
+            icon_y_offset = (bg_rect.height - icon_size) // 2
             
             if sprite_path:
                 image = self.get_cached_sprite(sprite_path, icon_size)
                 screen.blit(image, (icon_x, base_y + icon_y_offset))
             else:
-                # 沒圖就畫個小方塊代替
                 pg.draw.rect(screen, (200, 200, 200), (icon_x, base_y + icon_y_offset, icon_size, icon_size))
 
-            # 4. 畫文字
-            text_x = icon_x + icon_size + 10
-            text_surf = self.font_item.render(f"{item_name} x{item_count}", True, (0, 0, 0))
-            # 垂直置中文字
-            text_rect = text_surf.get_rect(midleft=(text_x, base_y + 25))
-            screen.blit(text_surf, text_rect)
-
-        # 繪製物品翻頁按鈕
-        if self.current_item_page > 0:
-            self.btn_item_prev.draw(screen)
-        if total_items > 0 and self.current_item_page < max_item_page:
-            self.btn_item_next.draw(screen)
-
+            # Text
+            text_x = icon_x + icon_size + 15
+            text_surf = self.font_item.render(f"{item_name}", True, (0, 0, 0))
+            count_surf = self.font_item.render(f"x {item_count}", True, (50, 50, 50))
+            
+            screen.blit(text_surf, (text_x, base_y + 20))
+            screen.blit(count_surf, (text_x, base_y + 40))
+            
+        # 物品翻頁按鈕
+        if self.current_item_page > 0: self.btn_item_prev.draw(screen)
+        if total_items > 0 and self.current_item_page < max_item_page: self.btn_item_next.draw(screen)
 
         ## Monsters ##
         all_monsters = self.game_manager.bag._monsters_data
@@ -197,25 +185,35 @@ class BagWindow(Window):
             
             # 格子
             base_y = self.rect.y + 120 + (i * self.item_height)
-            bg_rect = pg.Rect(self.rect.centerx + 20, base_y, 260, 50)
-            pg.draw.rect(screen, (215, 215, 215), bg_rect, border_radius=5)
-            pg.draw.rect(screen, (100, 100, 100), bg_rect, 2, border_radius=5)
+            bg_rect = pg.Rect(self.rect.centerx + 20, base_y, 260, self.item_height - 10)
+            
+            pg.draw.rect(screen, (240, 240, 240), bg_rect, border_radius=8)
+            pg.draw.rect(screen, (100, 100, 100), bg_rect, 2, border_radius=8)
 
-            # 資料
+            # 取得資料
             m_name = monster.get("name")
             db_data = self.game_manager.monster_database.get(m_name, {})
-            sprite_path = db_data.get("sprite_path", None)
+            
+            # 讀取屬性與經驗
+            m_type = db_data.get("type", "normal") 
+            m_exp = monster.get("exp", 0)
             m_level = monster.get("level", 1)
+
+            # 升級所需經驗
+            req_exp = (m_level + 1) ** 2
+            
             m_hp = monster.get("hp")
             base_hp = db_data.get("base_hp", 40)
             m_max = Monster.calculate_max_hp(base_hp, m_level)
             if m_hp > m_max: m_hp = m_max
             if m_hp < 0: m_hp = 0
 
+            sprite_path = db_data.get("sprite_path", None)
+
             # Icon
-            icon_size = 35
-            icon_x = self.rect.centerx + 25
-            icon_y_offset = (50 - icon_size) // 2
+            icon_size = 60 # 放大 Icon
+            icon_x = self.rect.centerx + 30
+            icon_y_offset = (bg_rect.height - icon_size) // 2
             
             if sprite_path:
                 image = self.get_cached_sprite(sprite_path, icon_size)
@@ -224,17 +222,27 @@ class BagWindow(Window):
                 pg.draw.rect(screen, (200, 200, 200), (icon_x, base_y + icon_y_offset, icon_size, icon_size))
 
             # 文字
-            text_x = icon_x + icon_size + 10
-        
+            text_x = icon_x + icon_size + 15
+            
+            # 等級與名稱
             name_surf = self.font_item.render(f"Lv.{m_level} {m_name}", True, (0, 0, 0))
-            screen.blit(name_surf, (text_x, base_y + 5))
+            screen.blit(name_surf, (text_x, base_y + 10))
 
-            hp_color = (200, 50, 50) if m_hp < m_max * 0.2 else (0, 0, 0)
-            hp_surf = self.font_item.render(f"HP: {m_hp}/{m_max}", True, hp_color)
-            screen.blit(hp_surf, (text_x, base_y + 25))
+            # 血量
+            hp_color = (200, 50, 50) if m_hp < m_max * 0.2 else (50, 50, 50)
+            hp_surf = self.font_item.render(f"HP: {int(m_hp)}/{m_max}", True, hp_color)
+            screen.blit(hp_surf, (text_x, base_y + 30))
 
-        # 繪製怪獸翻頁按鈕
-        if self.current_monster_page > 0:
-            self.btn_monster_prev.draw(screen)
-        if total_monsters > 0 and self.current_monster_page < max_monster_page:
-            self.btn_monster_next.draw(screen)
+            # 屬性
+            type_color = self.TYPE_COLORS.get(m_type.lower(), (100, 100, 100))
+            type_surf = self.font_item.render(f"[{m_type.upper()}]", True, type_color)
+            screen.blit(type_surf, (text_x + hp_surf.get_width() + 10, base_y + 30))
+
+            # 經驗值
+            exp_text = f"EXP: {m_exp} / {req_exp}"
+            exp_surf = self.font_item.render(exp_text, True, (80, 80, 180)) # 藍紫色字體
+            screen.blit(exp_surf, (text_x, base_y + 50))
+
+        # 怪獸翻頁按鈕
+        if self.current_monster_page > 0: self.btn_monster_prev.draw(screen)
+        if total_monsters > 0 and self.current_monster_page < max_monster_page: self.btn_monster_next.draw(screen)

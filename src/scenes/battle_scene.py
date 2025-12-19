@@ -1,6 +1,5 @@
 '''check point 2 - 5: Enemy Interaction'''
 import pygame as pg
-import random
 from enum import Enum, auto
 from typing import Optional
 
@@ -70,6 +69,9 @@ class BattleScene(Scene):
             on_def=self.on_use_def_potion,
             on_catch=self.try_catch_monster
         )
+        # checkpoint 3-4: 訊息佇列，依序顯示經驗值、升級、進化
+        self.message_queue: list[str] = []
+        self.waiting_input = False
 
     ## 初始化戰鬥 ##
     def setup_battle(self, game_manager, enemy_data, battle_type: BattleType):
@@ -227,7 +229,16 @@ class BattleScene(Scene):
         elif self.state == BattleState.ENEMY_TURN:
             self._process_enemy_turn(dt)
 
-        elif self.state in [BattleState.WON, BattleState.LOST]:
+        elif self.state == BattleState.WON:
+                if self.waiting_input:
+                    self.turn_timer += dt
+                    if self.turn_timer > 1.0:
+                        self._process_message_queue()
+                        self.turn_timer = 0
+                elif not self.message_queue: # 結算邏輯
+                    self._handle_victory()
+
+        elif self.state == BattleState.LOST:
             self.turn_timer += dt
             if self.turn_timer > self.BATTLE_END_DELAY:
                 self._save_player_state()
@@ -306,9 +317,13 @@ class BattleScene(Scene):
         return False 
 
     def _save_player_state(self):
-        """將當前血量寫回"""
+        """將當前狀態寫回"""
         if self.player and self.player.data:
             self.player.data["hp"] = self.player.hp
+            self.player.data["level"] = self.player.level
+            self.player.data["exp"] = self.player.exp
+            self.player.data["name"] = self.player.id
+            Logger.info(f"Saved Data: {self.player.name} Lv.{self.player.level} Exp:{self.player.exp}")
 
     def _process_enemy_turn(self, dt: float):
         """處理敵方回合的計時與攻擊"""
@@ -333,6 +348,33 @@ class BattleScene(Scene):
             else:
                 self.state = BattleState.PLAYER_TURN
             self.turn_timer = 0
+
+    # checkpoint 3-4: 經驗值結算
+    def _handle_victory(self):
+        """處理勝利後的經驗值結算"""
+        if not self.enemy or not self.player:
+            scene_manager.change_scene("game")
+            return
+
+        self.log_text = f"You defeated {self.enemy.name}!"
+        
+        # 計算經驗值: 敵人等級 * 基礎經驗
+        exp_gain = self.enemy.level * 10 
+        logs = self.player.gain_exp(exp_gain)
+
+        self.message_queue.extend(logs) # 將紀錄加入佇列
+        
+        self.waiting_input = True
+        self.turn_timer = 0
+
+    def _process_message_queue(self):
+        """從佇列中取出下一條訊息顯示"""
+        if self.message_queue:
+            msg = self.message_queue.pop(0)
+            self.log_text = msg
+        else:
+            self._save_player_state()
+            scene_manager.change_scene("game")
 
     def _draw_log_text(self, screen: pg.Surface):
         log_txt = self.font.render(self.log_text, True, (255, 255, 255))

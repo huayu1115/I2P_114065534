@@ -52,25 +52,33 @@ class Monster:
         self.attack = int(base_atk * (1 + self.level * 0.05) + (self.level * 0.5))
         self.defense = int(base_dfn * (1 + self.level * 0.05) + (self.level * 0.5))
 
+    # checkpoint 3-4: 經驗值與升級
     def gain_exp(self, amount: int):
         '''獲得經驗值並檢查升級'''
+        logs = []
         self.exp += amount
-        required_exp = (self.level + 1) ** 3 
+        logs.append(f"Gained {amount} EXP!")
         
-        if self.exp >= required_exp:
-            self.level_up()
+        while True:
+            required_exp = (self.level + 1) ** 2 # 經驗值曲線
+            if self.exp >= required_exp:
+                lvl_logs = self.level_up()
+                logs.extend(lvl_logs)
+            else:
+                break
+        return logs
 
     def level_up(self):
         '''升級處理'''
+        logs = []
         self.level += 1
-        self.exp = 0
-        old_max_hp = self.max_hp
-        self.recalculate_stats()
-        hp_gain = self.max_hp - old_max_hp
-        self.hp += hp_gain
-        Logger.info(f"{self.name} grew to level {self.level}! HP is now {self.max_hp}.")
-        self.check_evolution()
+        logs.append(f"{self.name} grew to Lv.{self.level}!")
 
+        # 檢查進化
+        evo_logs = self.check_evolution()
+        logs.extend(evo_logs)
+        return logs
+    
     def check_evolution(self):
         '''檢查是否達到進化條件'''
         evo_data = self.species_data.get("evolution")
@@ -79,11 +87,14 @@ class Monster:
             next_id = evo_data.get("next_id")
             
             if self.level >= req_level and next_id:
-                self.evolve(next_id)
+                return self.evolve(next_id)
+        return []
 
     def evolve(self, next_id: str):
         '''進化邏輯'''
-        Logger.info(f"What? {self.name} is evolving!")
+        logs = []
+        old_name = self.name
+        logs.append(f"What? {self.name} is evolving!")
         
         # 更新 ID
         self.id = next_id
@@ -102,7 +113,10 @@ class Monster:
         battle_path = self.species_data.get("sprite_battle_path", "")
         self._setup_sprite(battle_path)
         
-        Logger.info(f"Congratulations! Your pokemon evolved into {self.name}!")
+        logs.append(f"Congratulations! Your {old_name}")
+        logs.append(f"evolved into {self.name}!")
+
+        return logs
 
     ## 處理圖片           
     def _setup_sprite(self, path: str):

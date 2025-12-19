@@ -3,9 +3,9 @@
     "name": "Kieran",
     "sprite_path": "character/ow10.png",
     "team": [
-      { "name": "Sproutkit", "level": 10 },
+      { "name": "Bubphin", "level": 10 },
       { "name": "Pebblet", "level": 10 },
-      { "name": "Vichirp", "level": 10 }
+      { "name": "Sproutkit", "level": 10 }
     ],
     "reward_money": 3
   },

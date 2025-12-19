@@ -76,6 +76,7 @@ class GameScene(Scene):
         ## 字型
         self.font_title = pg.font.Font("././assets/fonts/Pokemon Solid.ttf", 30)
         self.font_item = pg.font.Font("././assets/fonts/Minecraft.ttf", 20)
+        self.font_bag = pg.font.Font("././assets/fonts/Minecraft.ttf", 15)
         px, py = GameSettings.SCREEN_WIDTH , GameSettings.SCREEN_HEIGHT
 
         self.log_text = ""
@@ -109,7 +110,7 @@ class GameScene(Scene):
         )
 
         ## check point 2 - 3: Backpack Overlay 初始化 bag ##
-        self.bag_window = BagWindow(self.game_manager, self.font_title, self.font_item)
+        self.bag_window = BagWindow(self.game_manager, self.font_title, self.font_bag)
 
         self.bag_button = Button(
             "UI/button_backpack.png",

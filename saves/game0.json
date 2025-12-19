@@ -66,15 +66,15 @@
   },
   "bag": {
     "monsters": [
-      { "name": "Sproutkit", "level": 17, "hp": 40, "exp": 1200 },
-      { "name": "Dreamweaver",  "level": 20, "hp": 10,  "exp": 5000 },
-      { "name": "Sonic-Fin",  "level": 25, "hp": 90,  "exp": 5000 },
-      { "name": "Infernotank",  "level": 38, "hp": 120,  "exp": 5000 }
+      { "name": "Sproutkit", "level": 17, "hp": 100, "exp": 320 },
+      { "name": "Dreamweaver",  "level": 20, "hp": 10,  "exp": 420 },
+      { "name": "Sonic-Fin",  "level": 25, "hp": 90,  "exp": 660 },
+      { "name": "Infernotank",  "level": 38, "hp": 120,  "exp": 150 }
 
     ],
     "items": [
-      { "name": "Heal Potion",      "count": 5,  "sprite_path": "ingame_ui/potion.png" },
       { "name": "Coins",       "count": 40,  "sprite_path": "ingame_ui/coin.png" },
+      { "name": "Heal Potion",      "count": 5,  "sprite_path": "ingame_ui/potion.png" },
       { "name": "Pokeball",    "count": 10, "sprite_path": "ingame_ui/ball.png" }
     ]
   }
