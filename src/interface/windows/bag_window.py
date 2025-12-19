@@ -197,7 +197,7 @@ class BagWindow(Window):
             
             # 格子
             base_y = self.rect.y + 120 + (i * self.item_height)
-            bg_rect = pg.Rect(self.rect.centerx + 20, base_y, 250, 50)
+            bg_rect = pg.Rect(self.rect.centerx + 20, base_y, 260, 50)
             pg.draw.rect(screen, (215, 215, 215), bg_rect, border_radius=5)
             pg.draw.rect(screen, (100, 100, 100), bg_rect, 2, border_radius=5)
 

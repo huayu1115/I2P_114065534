@@ -23,11 +23,12 @@ class Monster:
 
         # 物種屬性
         self.name = self.species_data.get("name", "Unknown")
-        self.type = self.species_data.get("type", "normal")
+        self.type = self.species_data.get("type", "grass")
         
         # 計算能力值
         self.max_hp = 0
         self.attack = 0
+        self.defense = 0
         self.recalculate_stats()
 
         self.hp = data.get("hp", self.max_hp)
@@ -45,9 +46,11 @@ class Monster:
     def recalculate_stats(self):
         base_hp = self.species_data.get("base_hp", 50)
         base_atk = self.species_data.get("base_attack", 10)
+        base_dfn = self.species_data.get("base_defense", 10)
         
         self.max_hp = Monster.calculate_max_hp(base_hp, self.level)
         self.attack = int(base_atk * (1 + self.level * 0.05) + (self.level * 0.5))
+        self.defense = int(base_dfn * (1 + self.level * 0.05) + (self.level * 0.5))
 
     def gain_exp(self, amount: int):
         '''獲得經驗值並檢查升級'''

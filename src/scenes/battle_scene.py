@@ -14,6 +14,12 @@ from src.interface.health_bar import HealthBar
 from src.interface.battle_dashboard import BattleDashboard
 
 
+ELEMENT_ADVANTAGE = {
+    'fire': 'grass',
+    'water': 'fire',
+    'grass': 'water'
+}
+
 class BattleScene(Scene):
     background: BackgroundSprite
     font: pg.font.Font
@@ -99,10 +105,37 @@ class BattleScene(Scene):
             return
         
         Logger.info("Player chose to Fight!")
-        base_dmg = self.player.attack
-        damage = int(base_dmg)
-        self.enemy.take_damage(damage)
-        self.log_text = f"You dealt {damage} damage!"
+
+        att= self.player.attack
+        dfn = self.enemy.defense
+
+
+        base_dmg = int(max(1, att - dfn))
+        
+        attacker_type = self.player.type
+        defender_type = self.enemy.type
+
+        final_damage = base_dmg
+        damage_text = f"{base_dmg}"
+
+        if ELEMENT_ADVANTAGE.get(attacker_type) == defender_type:
+                bonus = int(base_dmg * 0.5)
+                if bonus < 1: bonus = 1 # 確保至少 1 點傷害
+                final_damage = base_dmg + bonus
+                damage_text = f"{base_dmg} ( + {bonus} ) "
+
+        elif ELEMENT_ADVANTAGE.get(defender_type) == attacker_type:
+                reduction = int(base_dmg * 0.5)  
+                final_damage = base_dmg - reduction
+                damage_text = f"{base_dmg} ( - {reduction} ) "
+
+        else:
+                final_damage = base_dmg
+                damage_text = f"{base_dmg} ( + 0 ) "
+
+
+        self.enemy.take_damage(final_damage)
+        self.log_text = f"You dealt {damage_text} damage!"
 
         if self.enemy.hp <= 0:
             self.enemy.hp = 0
@@ -213,10 +246,41 @@ class BattleScene(Scene):
             self.turn_timer += dt
             if self.turn_timer > 1.0:
                 if self.player:
-                    base_dmg = self.enemy.attack
-                    dmg = int(base_dmg)
-                    self.player.take_damage(dmg)
-                    self.log_text = f"{self.enemy.name} attacked! {dmg} dmg"
+
+                    attacker_sprite = self.enemy
+                    defender_sprite = self.player
+
+                    # 傷害 = (攻擊力 - 防禦力) × 屬性加成
+                    attack_val = attacker_sprite.attack
+                    defense_val = defender_sprite.defense
+
+                    base_damage = int(max(1, attack_val - defense_val))
+
+                    attacker_type = attacker_sprite.type
+                    defender_type = defender_sprite.type
+
+
+                    final_damage = base_damage
+                    damage_text = f"{base_damage}"
+
+                    if ELEMENT_ADVANTAGE.get(attacker_type) == defender_type:
+                        bonus = int(base_damage * 0.5)
+                        if bonus < 1: bonus = 1
+                        final_damage = base_damage + bonus
+                        damage_text = f"{base_damage} ( + {bonus} ) "
+
+                    elif ELEMENT_ADVANTAGE.get(defender_type) == attacker_type:
+                        reduction = int(base_damage * 0.5)
+                        final_damage = base_damage - reduction
+                        damage_text = f"{base_damage} ( - {reduction} ) "
+
+                    else:
+                        final_damage = base_damage
+                        damage_text = f"{base_damage} ( + 0 ) "
+                    
+                    self.player.take_damage(final_damage)
+                    self.log_text = f"{self.enemy.name} attacked! {damage_text} dmg"
+
                 if self.turn_timer > 2.5:
                     if self.player.hp <= 0:
                         self.player.hp = 0
