@@ -14,7 +14,8 @@
       ],
       "teleport": [
         { "x": 24, "y": 23, "destination": "gym.tmx" },
-        { "x": 38, "y": 26, "destination": "store.tmx" }
+        { "x": 38, "y": 26, "destination": "store.tmx" },
+        { "x": 46, "y": 26, "destination": "center.tmx" }
       ],
       "player": {
         "x": 16,
@@ -53,6 +54,21 @@
           "goods": ["pokeball", "level-up candy"]
         }
       ],
+      "player": {
+        "x": 8,
+        "y": 9
+      }
+    },
+    {
+      "path": "center.tmx",
+      "teleport": [
+        { "x": 6, "y": 12, "destination": "map.tmx" },
+        { "x": 7, "y": 12, "destination": "map.tmx" },
+        { "x": 8, "y": 12, "destination": "map.tmx" }
+      ],
+      "roaming_mobs": [],
+      "enemy_trainers": [],
+      "merchants": [],
       "player": {
         "x": 8,
         "y": 9

@@ -70,62 +70,66 @@ class Minimap:
             
         if self.cached_image is None: return
 
-        # 繪製地圖縮圖
+        # 繪製地圖縮圖背景
         screen.blit(self.cached_image, (self.x, self.y))
-        
-        # 繪製邊框
         pg.draw.rect(screen, self.border_color, (self.x, self.y, self.w, self.h), 2)
         
-        # 準備計算座標
+        # 取得必要的參照
         player = self.game_manager.player
         current_map = self.game_manager.current_map
         if not player or not current_map: return
 
-        real_map_w = getattr(current_map, 'width', 50) * GameSettings.TILE_SIZE
-        real_map_h = getattr(current_map, 'height', 50) * GameSettings.TILE_SIZE
+        # 正確取得地圖真實像素寬高
+        map_tiles_w = getattr(current_map.tmxdata, 'width', 1)
+        map_tiles_h = getattr(current_map.tmxdata, 'height', 1)
         
-        # 計算比例
+        real_map_w = map_tiles_w * GameSettings.TILE_SIZE
+        real_map_h = map_tiles_h * GameSettings.TILE_SIZE
+        
+        # 計算比例尺: 小地圖寬度 / 真實地圖寬度
         scale_x = self.w / real_map_w
         scale_y = self.h / real_map_h
 
-        # 計算並繪製玩家點: 玩家在小地圖的 x = 真實 x * 比例 + 小地圖偏移 x
-        p_mini_x = self.x + (player.position.x * scale_x)
-        p_mini_y = self.y + (player.position.y * scale_y)
+        # 繪製玩家紅點：(pos.x + 半個格子) * 比例
+        player_center_x = player.position.x + (GameSettings.TILE_SIZE / 2)
+        player_center_y = player.position.y + (GameSettings.TILE_SIZE / 2)
+
+        p_mini_x = self.x + (player_center_x * scale_x)
+        p_mini_y = self.y + (player_center_y * scale_y)
+        
+        # 限制紅點不要畫出框框外
+        p_mini_x = max(self.x, min(self.x + self.w, p_mini_x))
+        p_mini_y = max(self.y, min(self.y + self.h, p_mini_y))
+        
         pg.draw.circle(screen, self.player_dot_color, (int(p_mini_x), int(p_mini_y)), 3)
         
-        # 計算並繪製鏡頭框 
-        view_w_real = GameSettings.SCREEN_WIDTH
-        view_h_real = GameSettings.SCREEN_HEIGHT
+        # 繪製黃色鏡頭框
+        view_w_real = min(GameSettings.SCREEN_WIDTH, real_map_w)
+        view_h_real = min(GameSettings.SCREEN_HEIGHT, real_map_h)
         
-        # 視野的左上角座標
-        view_x_real = player.position.x - (view_w_real / 2)
-        view_y_real = player.position.y - (view_h_real / 2)
+        # 鏡頭中心對準玩家: 左上角 = 玩家中心 - (畫面寬高 / 2)
+        cam_x = player_center_x - (view_w_real / 2)
+        cam_y = player_center_y - (view_h_real / 2)
         
-        # 邊界限制: 不讓框框跑出地圖外
-        view_x_real = max(0, min(view_x_real, real_map_w - view_w_real))
-        view_y_real = max(0, min(view_y_real, real_map_h - view_h_real))
+        # 限制鏡頭框不要超出真實地圖邊界
+        cam_x = max(0, min(cam_x, real_map_w - view_w_real))
+        cam_y = max(0, min(cam_y, real_map_h - view_h_real))
 
-        # 轉換成小地圖座標
-        rect_x = self.x + (view_x_real * scale_x)
-        rect_y = self.y + (view_y_real * scale_y)
+        # 轉換為小地圖座標
+        rect_x = self.x + (cam_x * scale_x)
+        rect_y = self.y + (cam_y * scale_y)
         rect_w = view_w_real * scale_x
         rect_h = view_h_real * scale_y
         
-        # 畫出框框
         pg.draw.rect(screen, self.camera_rect_color, (rect_x, rect_y, rect_w, rect_h), 1)
 
-        # 將像素座標轉換為網格座標
+        # 繪製座標文字
         grid_x = int(player.position.x // GameSettings.TILE_SIZE)
         grid_y = int(player.position.y // GameSettings.TILE_SIZE)
         
         coord_text = f"Pos: ({grid_x}, {grid_y})"
-        
-        # 繪製文字
         text_surf = self.font.render(coord_text, True, (255, 255, 255))
         shadow_surf = self.font.render(coord_text, True, (0, 0, 0))
         
-        text_pos_x = self.x
-        text_pos_y = self.y + self.h + 5 
-        
-        screen.blit(shadow_surf, (text_pos_x + 1, text_pos_y + 1))
-        screen.blit(text_surf, (text_pos_x, text_pos_y))
+        screen.blit(shadow_surf, (self.x + 1, self.y + self.h + 6))
+        screen.blit(text_surf, (self.x, self.y + self.h + 5))
