@@ -142,6 +142,8 @@ class SettingWindow(Window):
         
         if not self.is_open:
             return
+        
+        self._update_handle_pos()
 
         # 標題
         text_rect = self.text_title.get_rect(center=(self.rect.centerx, self.rect.top + 80))

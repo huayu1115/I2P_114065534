@@ -20,7 +20,7 @@ class HealthBar:
 
     def draw(self, screen: pg.Surface, x: int, y: int, hp: int, max_hp: int, name: str, m_type: str):
 
-        bar_width = 200
+        bar_width = 210
         bar_height = 20
 
         # 底框
