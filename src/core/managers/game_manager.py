@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from src.entities.player import Player
     from src.entities.enemy_trainer import EnemyTrainer
     from src.entities.merchant import Merchant
+    from src.entities.nurse import Nurse
     from src.data.bag import Bag
 
 class GameManager:
@@ -38,6 +39,7 @@ class GameManager:
                  player: Player | None,
                  enemy_trainers: dict[str, list[EnemyTrainer]], 
                  merchants: dict[str, list[Merchant]],
+                 nurses: dict[str, list[Nurse]] = None,
                  bag: Bag | None = None):
                      
         from src.data.bag import Bag
@@ -47,6 +49,7 @@ class GameManager:
         self.player = player
         self.enemy_trainers = enemy_trainers
         self.merchants = merchants
+        self.nurses = nurses if nurses is not None else {}
         self.bag = bag if bag is not None else Bag([], [])
 
         self.item_database = self._load_database("src/data/items.json")
@@ -184,6 +187,7 @@ class GameManager:
             block = m.to_dict()
             block["enemy_trainers"] = [t.to_dict() for t in self.enemy_trainers.get(key, [])]
             block["merchants"] = [t.to_dict() for t in self.merchants.get(key, [])]
+            block["nurses"] = [n.to_dict() for n in self.nurses.get(key, [])]
             # 取得該地圖對應的座標
             saved_pos = self.player_spawns.get(key)
             if saved_pos is None:
@@ -209,6 +213,7 @@ class GameManager:
         from src.entities.player import Player
         from src.entities.enemy_trainer import EnemyTrainer
         from src.entities.merchant import Merchant
+        from src.entities.nurse import Nurse
         from src.data.bag import Bag
         
         Logger.info("Loading maps")
@@ -217,6 +222,7 @@ class GameManager:
         player_spawns: dict[str, Position] = {}
         trainers: dict[str, list[EnemyTrainer]] = {}
         merchants: dict[str, list[Merchant]] = {}
+        nurses: dict[str, list[Nurse]] = {}
 
         for entry in maps_data:
             path = entry["path"]
@@ -233,8 +239,10 @@ class GameManager:
             None, # Player
             trainers,
             merchants,
+            nurses=nurses,
             bag=None
         )
+
         gm.player_spawns = player_spawns
         gm.current_map_key = current_map
         
@@ -247,7 +255,12 @@ class GameManager:
         for m in data["map"]:
             raw_data = m["merchants"]
             gm.merchants[m["path"]] = [Merchant.from_dict(t, gm) for t in raw_data]
-        
+
+        Logger.info("Loading nurses")
+        for m in data["map"]:
+            raw_data = m.get("nurses", [])
+            gm.nurses[m["path"]] = [Nurse.from_dict(t, gm) for t in raw_data]
+
         Logger.info("Loading Player")
         if data.get("player"):
             gm.player = Player.from_dict(data["player"], gm)

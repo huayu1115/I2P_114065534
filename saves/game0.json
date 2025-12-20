@@ -12,6 +12,7 @@
           "goods": ["heal potion", "strength potion", "defense potion", "pokeball", "level-up candy"]
         }
       ],
+      "nurses": [],
       "teleport": [
         { "x": 24, "y": 23, "destination": "gym.tmx" },
         { "x": 38, "y": 26, "destination": "store.tmx" },
@@ -32,6 +33,7 @@
       "roaming_mobs": [],
       "enemy_trainers": [],
       "merchants": [],
+      "nurses": [],
       "player": {
         "x": 12,
         "y": 11
@@ -46,6 +48,7 @@
       ],
       "roaming_mobs": [],
       "enemy_trainers": [],
+      "nurses": [],
       "merchants": [
         { "x": 6, "y": 5, "facing": "DOWN", "max_tiles": 2,
           "goods": ["heal potion", "strength potion", "defense potion"]
@@ -69,6 +72,9 @@
       "roaming_mobs": [],
       "enemy_trainers": [],
       "merchants": [],
+      "nurses": [
+        { "x": 7, "y": 5, "facing": "DOWN" }
+      ],
       "player": {
         "x": 8,
         "y": 9

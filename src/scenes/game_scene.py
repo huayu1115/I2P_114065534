@@ -293,6 +293,18 @@ class GameScene(Scene):
                 if merchant.detected and input_manager.key_pressed(pg.K_SPACE):
                     Logger.info("Store Triggered!")
                     self.shop_window.setup_shop(merchant.goods)
+
+
+            '''Nurse Interaction'''
+            current_nurses = self.game_manager.nurses.get(self.game_manager.current_map_key, [])
+            for nurse in current_nurses:
+                nurse.update(dt)
+
+                if nurse.detected and input_manager.key_pressed(pg.K_SPACE):
+                    msg = nurse.heal_team()
+
+                    self.log_text = msg
+                    self.log_timer = 2.0
                 
             # Update others
             self.game_manager.bag.update(dt)
@@ -406,9 +418,10 @@ class GameScene(Scene):
         for merchant in self.game_manager.merchants.get(self.game_manager.current_map_key, []):
             merchant.draw(screen, camera)
 
+        for nurse in self.game_manager.nurses.get(self.game_manager.current_map_key, []):
+            nurse.draw(screen, camera)
+
         self.game_manager.bag.draw(screen)
-        #if self._chat_overlay:
-        #    self._chat_overlay.draw(screen)
         
         if self.online_manager and self.game_manager.player:
             list_online = self.online_manager.get_list_players()
