@@ -199,7 +199,7 @@ class BattleScene(Scene):
     # checkpoint 3-4: 藥水功能，搭配 _use_item 輔助函式
     def on_use_heal_potion(self):
         def effect():
-            heal_amount = 50 # 設定回復量
+            heal_amount = 100 # 設定回復量
             old_hp = self.player.hp
             self.player.hp += heal_amount
             if self.player.hp > self.player.max_hp:

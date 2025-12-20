@@ -217,38 +217,39 @@ class GameScene(Scene):
                 self.game_manager.player.update(dt)
 
                 player = self.game_manager.player
-                is_moving = player.dis.x != 0 or player.dis.y != 0
+                #is_moving = player.dis.x != 0 or player.dis.y != 0
                 
                 # 檢查是否踩在草叢上，縮小判定範圍
                 hitbox = player.animation.rect.inflate(-10, -10)
                 in_grass = self.game_manager.current_map.check_in_grass(hitbox)
 
-                if is_moving and in_grass:
-                    if random.random() < 0.05: 
-                        Logger.info("Wild Monster Encountered!")
+                # 在草叢上且按下空白鍵
+                if in_grass and input_manager.key_pressed(pg.K_SPACE):
+                    Logger.info("Wild Monster Encountered! (Manual)")
 
-                        if not self.check_team_alive():
-                            self.log_text = "You have no energy to battle! Please heal!"
-                            self.log_timer = 1.0
-                            Logger.info("You have no energy to battle! Please heal!")
-                            return
-                        
-                        monster_keys = list(self.game_manager.monster_database.keys())
-                        species = random.choice(monster_keys)
-                        enemy_data = self.game_manager.monster_database[species].copy()
-                        enemy_data["level"] = random.randint(1, 40)
-                        
-                        if "current_hp" in enemy_data: del enemy_data["current_hp"]
-                        if "hp" in enemy_data: del enemy_data["hp"]
-
-                        battle_scene = scene_manager._scenes["battle"]    
-                        battle_scene.setup_battle(
-                            self.game_manager, 
-                            enemy_data,
-                            BattleType.WILD
-                        )
-                        scene_manager.change_scene("battle")
+                    if not self.check_team_alive():
+                        self.log_text = "You have no energy to battle! Please heal!"
+                        self.log_timer = 1.0
+                        Logger.info("You have no energy to battle! Please heal!")
                         return
+                    
+                    # 生成隨機怪獸
+                    monster_keys = list(self.game_manager.monster_database.keys())
+                    species = random.choice(monster_keys)
+                    enemy_data = self.game_manager.monster_database[species].copy()
+                    enemy_data["level"] = random.randint(1, 40)
+                    
+                    if "current_hp" in enemy_data: del enemy_data["current_hp"]
+                    if "hp" in enemy_data: del enemy_data["hp"]
+
+                    battle_scene = scene_manager._scenes["battle"]    
+                    battle_scene.setup_battle(
+                        self.game_manager, 
+                        enemy_data,
+                        BattleType.WILD
+                    )
+                    scene_manager.change_scene("battle")
+                    return
 
             '''check point 2 - 5: Enemy Interaction'''
             for enemy in self.game_manager.current_enemy_trainers:
@@ -293,7 +294,6 @@ class GameScene(Scene):
                     Logger.info("Store Triggered!")
                     self.shop_window.setup_shop(merchant.goods)
                 
-
             # Update others
             self.game_manager.bag.update(dt)
 
