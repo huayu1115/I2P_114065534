@@ -24,7 +24,6 @@ class SettingScene(Scene):
         self.background = BackgroundSprite("backgrounds/background1.png")
         self.font_title = pg.font.Font("assets/fonts/Pokemon Solid.ttf", 30)
         self.font = pg.font.Font("././assets/fonts/Minecraft.ttf", 15)
-        self.is_muted = False
 
         ## 文字
         self.text_title = self.font_title.render("Settings", True, (0, 0, 0))
@@ -79,17 +78,14 @@ class SettingScene(Scene):
         handle_y = bar_y + bar_height // 2 - handle_size // 2
         self.volume_handle_rect = pg.Rect(handle_x, handle_y, handle_size, handle_size)
 
-
-
     def toggle_mute(self):
         # 恢復播放
-        if self.is_muted:
-            self.is_muted = False
+        if GameSettings.IS_MUTED:
+            GameSettings.IS_MUTED = False
             sound_manager.resume_all()  
-        # 暫停所有聲音
         else:
-            self.is_muted = True
-            sound_manager.pause_all()   
+            GameSettings.IS_MUTED = True
+            sound_manager.pause_all()
 
     @override
     def enter(self) -> None:
@@ -119,11 +115,10 @@ class SettingScene(Scene):
                     sound_manager.current_bgm.set_volume(ratio)
 
         ## 靜音按鈕 ##
-        if self.is_muted:
+        if GameSettings.IS_MUTED:
             self.mute_button_on.update(dt)
         else:
             self.mute_button_off.update(dt)
-
 
     @override
     def draw(self, screen: pg.Surface) -> None:
@@ -163,11 +158,11 @@ class SettingScene(Scene):
         screen.blit(volume_text, (self.panel.centerx + 200, self.volume_bar_rect.y))
 
         ## 禁音
-        if self.is_muted:
+        if GameSettings.IS_MUTED:
             self.mute_button_on.draw(screen)
         else:
             self.mute_button_off.draw(screen)
-        status_text = f"Mute: {'ON' if self.is_muted else 'OFF'}"
+        status_text = f"Mute: {'ON' if GameSettings.IS_MUTED else 'OFF'}"
         text_surface = self.font.render(status_text, True, (0, 0, 0))
         text_rect = text_surface.get_rect(center=(self.panel.centerx - 110, self.panel.centery-40))
         screen.blit(text_surface, text_rect)

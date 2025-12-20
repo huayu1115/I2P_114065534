@@ -15,8 +15,6 @@ class SettingWindow(Window):
         self.font_title = font_title
         self.font_item = font_item
         self.on_game_reload_callback = on_game_reload_callback
-        
-        self.is_muted = False 
 
         # 標題與文字
         self.text_title = self.font_title.render("Settings", True, (0, 0, 0))
@@ -79,12 +77,12 @@ class SettingWindow(Window):
         self.volume_handle_rect.topleft = (handle_x, handle_y)
 
     def toggle_mute(self):
-        if self.is_muted:
-            self.is_muted = False
+        if GameSettings.IS_MUTED:
+            GameSettings.IS_MUTED = False
             sound_manager.resume_all()  
         else:
-            self.is_muted = True
-            sound_manager.pause_all() 
+            GameSettings.IS_MUTED = True
+            sound_manager.pause_all()
 
     def save_game(self):
         save_path = "saves/game0.json"
@@ -113,7 +111,7 @@ class SettingWindow(Window):
         self.save_button.update(dt)
         self.load_button.update(dt)
         
-        if self.is_muted:
+        if GameSettings.IS_MUTED:
             self.mute_button_on.update(dt)
         else:
             self.mute_button_off.update(dt)
@@ -166,12 +164,12 @@ class SettingWindow(Window):
         pg.draw.rect(screen, (0, 0, 0), self.volume_handle_rect, 2)
 
         # 靜音按鈕
-        if self.is_muted:
+        if GameSettings.IS_MUTED:
             self.mute_button_on.draw(screen)
         else:
             self.mute_button_off.draw(screen)
-        
-        status_text = f"Mute: {'ON' if self.is_muted else 'OFF'}"
+
+        status_text = f"Mute: {'ON' if GameSettings.IS_MUTED else 'OFF'}"
         text_surface = self.font_item.render(status_text, True, (0, 0, 0))
         text_rect = text_surface.get_rect(center=(self.rect.centerx - 110, self.rect.centery - 40))
         screen.blit(text_surface, text_rect)

@@ -14,6 +14,9 @@ class SoundManager:
         audio.set_volume(GameSettings.AUDIO_VOLUME)
         audio.play(-1)
         self.current_bgm = audio
+
+        if GameSettings.IS_MUTED:
+            self.pause_all()
         
     def pause_all(self):
         pg.mixer.pause()
@@ -22,6 +25,10 @@ class SoundManager:
         pg.mixer.unpause()
         
     def play_sound(self, filepath, volume=0.7):
+        
+        if GameSettings.IS_MUTED:
+            return
+        
         sound = load_sound(filepath)
         sound.set_volume(volume)
         sound.play()

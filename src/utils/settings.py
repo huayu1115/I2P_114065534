@@ -12,6 +12,7 @@ class Settings:
     DRAW_HITBOXES: bool = False  # Draw hitboxes for debugging
     # Audio
     MAX_CHANNELS: int = 16
+    IS_MUTED = False
     AUDIO_VOLUME: float = 0.5   # Volume of audio
     # Online
     IS_ONLINE: bool = True
