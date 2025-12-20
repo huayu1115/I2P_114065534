@@ -2,7 +2,7 @@ import pygame as pg
 from src.interface.windows.window import Window
 from src.interface.components import Button
 from src.core import GameManager
-from src.utils import GameSettings, Logger
+from src.utils import GameSettings, Logger, load_img 
 
 class ShopWindow(Window):
     def __init__(self, game_manager: GameManager, font_title: pg.font.Font, font_item: pg.font.Font):
@@ -13,7 +13,17 @@ class ShopWindow(Window):
         self.merchant_goods = []
         self.action_buttons = []
         self.mode = "BUY"
+        
+        # 圖片快取，避免重複讀取硬碟
+        self.sprite_cache = {}
 
+        # 頁面排版設定
+        self.columns = 2
+        self.item_height = 80
+        self.gap_x = 15
+        self.gap_y = 15
+
+        # 標籤按鈕 (Buy / Sell)
         btn_width, btn_height = 80, 30
         img_normal = "UI/raw/UI_Flat_Button02a_3.png"
         img_hover = "UI/raw/UI_Flat_Button02a_1.png"
@@ -32,8 +42,22 @@ class ShopWindow(Window):
             on_click=lambda: self.switch_mode("SELL")
         )
 
+    # 獲取快取圖片
+    def get_cached_sprite(self, path: str, size: int):
+        if not path: return None
+        if path not in self.sprite_cache:
+            try:
+                img = load_img(path)
+                img = pg.transform.scale(img, (size, size))
+                self.sprite_cache[path] = img
+            except Exception as e:
+                Logger.warning(f"Failed to load sprite {path}: {e}")
+                surf = pg.Surface((size, size))
+                surf.fill((150, 150, 150))
+                self.sprite_cache[path] = surf
+        return self.sprite_cache[path]
+
     def setup_shop(self, goods: list[dict]):
-        '''每次與商人對話時呼叫此函式'''
         self.merchant_goods = goods
         self.switch_mode("BUY")
         if not self.is_open:
@@ -44,11 +68,10 @@ class ShopWindow(Window):
         self.refresh_items()
 
     def refresh_items(self):
-        '''根據當前模式重新生成列表與按鈕'''
+        '''根據當前模式重新生成按鈕，並計算網格位置'''
         self.action_buttons.clear()
-        start_y = self.rect.y + 110
         
-        # 買模式 or 賣模式 (排除 Coins)
+        # 決定顯示的列表
         if self.mode == "BUY":
             display_list = self.merchant_goods
             btn_img = "UI/button_shop.png"
@@ -61,13 +84,32 @@ class ShopWindow(Window):
             btn_hover_img = "UI/button_shop_hover.png"
             action_func = self.sell_item
 
-        # 生成列表按鈕
+        # 網格計算參數
+        start_x = self.rect.x + 30
+        start_y = self.rect.y + 110
+        # 計算寬度: (總寬 - 兩邊留白 - 中間間隔) / 2
+        card_width = (self.rect.width - 60 - self.gap_x) // self.columns
+        
+        # 生成按鈕
         for i, item in enumerate(display_list):
+            # 計算網格座標
+            col = i % self.columns
+            row = i // self.columns
+            
+            item_x = start_x + col * (card_width + self.gap_x)
+            item_y = start_y + row * (self.item_height + self.gap_y)
+            
+            # 按鈕位置
+            btn_size = 35
+            btn_x = item_x + card_width - btn_size - 10
+            btn_y = item_y + (self.item_height - btn_size) // 2
+            
+            # 建立按鈕
             btn = Button(
                 btn_img,
                 btn_hover_img,
-                self.rect.right - 100, start_y + (i * 45),
-                30, 30,
+                btn_x, btn_y,
+                btn_size, btn_size,
                 on_click=lambda target=item: action_func(target)
             )
             self.action_buttons.append(btn)
@@ -82,15 +124,14 @@ class ShopWindow(Window):
         price = item_data.get("price", 0)
         name = item_data.get("name", "Unknown")
         
-        # 檢查金錢是否足夠
         bag_items = self.game_manager.bag._items_data
         coins_item = next((i for i in bag_items if i["name"] == "Coins"), None)
         current_money = coins_item["count"] if coins_item else 0  
+        
         if current_money >= price:
             if coins_item:
                 coins_item["count"] -= price 
             
-            # 加物品到背包 (檢查是否已擁有)
             existing_item = next((i for i in bag_items if i["name"] == name), None)
             if existing_item:
                 existing_item["count"] = existing_item.get("count", 1) + 1
@@ -106,28 +147,23 @@ class ShopWindow(Window):
 
     def sell_item(self, item_data: dict):
         name = item_data.get("name", "Unknown")
-        
-        # 計算賣價: 原價的一半
         original_price = self.get_item_price(name)
         sell_price = original_price // 2
-        
-        if sell_price <= 0:
-            sell_price = 1
+        if sell_price <= 0: sell_price = 1
             
-        # 增加金錢
         bag_items = self.game_manager.bag._items_data
         coins_item = next((i for i in bag_items if i["name"] == "Coins"), None)
+        
         if coins_item:
             coins_item["count"] += sell_price
-        else: # 如果背包沒錢，新增一筆
+        else: 
             bag_items.append({"name": "Coins", "count": sell_price, "sprite_path": "ingame_ui/coin.png"})
 
-        # 扣除物品數量
         if item_data["count"] > 1:
             item_data["count"] -= 1
         else:
-            bag_items.remove(item_data) # 數量歸零，從背包移除
-            self.refresh_items() 
+            bag_items.remove(item_data)
+            self.refresh_items() # 物品沒了要重整清單
 
         Logger.info(f"Sold {name} for {sell_price}.")
 
@@ -148,12 +184,11 @@ class ShopWindow(Window):
         # 標題
         title_text = f"Shop - {self.mode}"
         title = self.font_title.render(title_text, True, (0, 0, 0))
-        screen.blit(title, (self.rect.centerx - title.get_width()//2+50, self.rect.y + 40))
+        screen.blit(title, (self.rect.centerx - title.get_width()//2 + 50, self.rect.y + 40))
 
         # 繪製分頁按鈕
         self.btn_tab_buy.draw(screen)
         self.btn_tab_sell.draw(screen)
-
         self._draw_text(screen, "Buy", self.btn_tab_buy)
         self._draw_text(screen, "Sell", self.btn_tab_sell)
 
@@ -164,33 +199,67 @@ class ShopWindow(Window):
         money_surf = self.font_item.render(f"Coins: ${money_val}", True, (255, 215, 0))
         screen.blit(money_surf, (self.rect.x + 40, self.rect.bottom - 40))
 
-        # 繪製列表內容
+        # 繪製網格列表內容
+        start_x = self.rect.x + 30
         start_y = self.rect.y + 110
-        
-        # 根據模式決定要繪製的資料
+        card_width = (self.rect.width - 60 - self.gap_x) // self.columns
+
         if self.mode == "BUY":
             display_list = self.merchant_goods
         else:
             display_list = [item for item in self.game_manager.bag._items_data if item["name"] != "Coins"]
 
         for i, item in enumerate(display_list):
+            # 計算位置
+            col = i % self.columns
+            row = i // self.columns
+            x = start_x + col * (card_width + self.gap_x)
+            y = start_y + row * (self.item_height + self.gap_y)
+            
+            # 繪製底框
+            bg_rect = pg.Rect(x, y, card_width, self.item_height)
+            pg.draw.rect(screen, (225, 225, 225), bg_rect, border_radius=8)
+            pg.draw.rect(screen, (100, 100, 100), bg_rect, 2, border_radius=8)
+
+            # 顯示圖片
+            icon_size = 50
+            icon_x = x + 10
+            icon_y = y + (self.item_height - icon_size) // 2
+            
+            sprite_path = item.get("sprite_path")
+            if sprite_path:
+                image = self.get_cached_sprite(sprite_path, icon_size)
+                if image:
+                    screen.blit(image, (icon_x, icon_y))
+            else:
+                pg.draw.rect(screen, (180, 180, 180), (icon_x, icon_y, icon_size, icon_size))
+
+            # 顯示文字
             name = item.get("name", "Unknown")
             count = item.get("count", 1)
+            text_x = icon_x + icon_size + 10
             
-            # 決定顯示價格
+            name_surf = self.font_item.render(name, True, (0, 0, 0))
+            screen.blit(name_surf, (text_x, y + 15))
+
             if self.mode == "BUY":
                 price = item.get("price", 0)
-                text = f"{name} (${price})"
+                price_surf = self.font_item.render(f"${price}", True, (200, 50, 50)) # 紅色價格
+                screen.blit(price_surf, (text_x, y + 40))
             else:
-                # 賣出價格查詢
+                # 賣出模式顯示持有量與賣價
                 original_price = self.get_item_price(name)
                 sell_price = original_price // 2
-                text = f"{name} x{count} (Sell: ${sell_price})"
+                
+                info_text = f"Have: {count}"
+                info_surf = self.font_item.render(info_text, True, (80, 80, 80))
+                screen.blit(info_surf, (text_x, y + 35))
+                
+                sell_text = f"Sell: ${sell_price}"
+                sell_surf = self.font_item.render(sell_text, True, (50, 150, 50)) # 綠色賣價
+                screen.blit(sell_surf, (text_x, y + 55))
 
-            surf = self.font_item.render(text, True, (255, 255, 255))
-            screen.blit(surf, (self.rect.x + 40, start_y + (i * 45) + 5))
-
-        # 繪製列表按鈕
+        # 繪製所有按鈕
         for btn in self.action_buttons:
             btn.draw(screen)
 

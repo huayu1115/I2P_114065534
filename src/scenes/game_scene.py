@@ -139,7 +139,7 @@ class GameScene(Scene):
 
 
         ## check point 3-2: Shop Overlay 初始化 shop ##
-        self.shop_window = ShopWindow(self.game_manager, self.font_title, self.font_item)
+        self.shop_window = ShopWindow(self.game_manager, self.font_title, self.font_bag)
         ## check point 3-5: 初始化小地圖 ##
         self.minimap = Minimap(self.game_manager, self.font_item)
         ## 初始化等級限制表
@@ -219,7 +219,6 @@ class GameScene(Scene):
                 self.game_manager.player.update(dt)
 
                 player = self.game_manager.player
-                #is_moving = player.dis.x != 0 or player.dis.y != 0
                 
                 # 檢查是否踩在草叢上，縮小判定範圍
                 hitbox = player.animation.rect.inflate(-10, -10)
