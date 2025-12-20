@@ -142,6 +142,8 @@ class GameScene(Scene):
         self.shop_window = ShopWindow(self.game_manager, self.font_title, self.font_item)
         ## check point 3-5: 初始化小地圖 ##
         self.minimap = Minimap(self.game_manager, self.font_item)
+        ## 初始化等級限制表
+        self.min_level_requirements = self._generate_min_levels()
 
 
     ## 當 SettingWindow 讀取存檔後，會呼叫此函式來更新所有場景中的參照 ##
@@ -225,19 +227,34 @@ class GameScene(Scene):
 
                 # 在草叢上且按下空白鍵
                 if in_grass and input_manager.key_pressed(pg.K_SPACE):
-                    Logger.info("Wild Monster Encountered! (Manual)")
+                    Logger.info("Wild Monster Encountered!")
 
                     if not self.check_team_alive():
                         self.log_text = "You have no energy to battle! Please heal!"
                         self.log_timer = 1.0
-                        Logger.info("You have no energy to battle! Please heal!")
                         return
                     
-                    # 生成隨機怪獸
-                    monster_keys = list(self.game_manager.monster_database.keys())
-                    species = random.choice(monster_keys)
-                    enemy_data = self.game_manager.monster_database[species].copy()
-                    enemy_data["level"] = random.randint(1, 40)
+                    # 隨機生成遭遇等級
+                    encounter_level = random.randint(2, 40)
+                    # 篩選怪獸
+                    valid_monsters = []
+                    db = self.game_manager.monster_database
+                    
+                    for name in db.keys():
+                        # 從快取表中讀取該怪獸的最低等級
+                        required_lv = self.min_level_requirements.get(name, 1)
+                        # 遭遇等級必須 >= 該怪獸的最低需求
+                        if encounter_level >= required_lv:
+                            valid_monsters.append(name)
+
+                    if not valid_monsters:
+                        valid_monsters = list(db.keys())
+
+                    # 生成怪獸
+                    species = random.choice(valid_monsters)
+                    enemy_data = db[species].copy()
+                    
+                    enemy_data["level"] = encounter_level
                     
                     if "current_hp" in enemy_data: del enemy_data["current_hp"]
                     if "hp" in enemy_data: del enemy_data["hp"]
@@ -588,3 +605,25 @@ class GameScene(Scene):
             3. Measure the rendered text to determine bubble size.
             Add padding around the text.
         """
+
+    def _generate_min_levels(self) -> dict[str, int]:
+        """從資料庫解析怪獸的最低出現等級"""
+        db = self.game_manager.monster_database
+        min_levels = {name: 1 for name in db.keys()}
+        
+        # 遍歷資料庫尋找進化關係
+        for name, data in db.items():
+            evo_data = data.get("evolution")
+            
+            # 如果這隻怪獸有進化資訊
+            if evo_data:
+                next_id = evo_data.get("next_id")
+                level_req = evo_data.get("level")
+                
+                # 更新下一階怪獸的最低等級限制
+                if next_id and level_req:
+                    # 如果資料庫裡有這隻怪獸，就更新它的最低等級
+                    if next_id in min_levels:
+                        min_levels[next_id] = level_req
+                        
+        return min_levels
