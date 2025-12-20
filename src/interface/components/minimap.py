@@ -30,10 +30,18 @@ class Minimap:
         if not current_map: return
 
         # 取得地圖真實尺寸
-        map_w_tiles = getattr(current_map, 'width', 50)
-        map_h_tiles = getattr(current_map, 'height', 50)
+        if hasattr(current_map, "tmxdata"):
+            map_w_tiles = current_map.tmxdata.width
+            map_h_tiles = current_map.tmxdata.height
+        else:
+            map_w_tiles = 50
+            map_h_tiles = 50
+
         real_w = map_w_tiles * GameSettings.TILE_SIZE
         real_h = map_h_tiles * GameSettings.TILE_SIZE
+
+        if real_w > 0:
+            self.h = int(self.w * (real_h / real_w))
         
         # 建立一個跟真實地圖一樣大的暫存畫布
         temp_surface = pg.Surface((real_w, real_h))
