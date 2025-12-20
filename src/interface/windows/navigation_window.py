@@ -16,7 +16,7 @@ class NavigationWindow(Window):
         self.locations = [
             {"name": "Home", "map": "map.tmx", "pos": (16, 30)},
             {"name": "Gym", "map": "map.tmx", "pos": (24, 25)},
-            {"name": "Pokemon Center", "map": "map.tmx", "pos": (46, 27)},
+            {"name": "Treatment Center", "map": "map.tmx", "pos": (46, 27)},
             {"name": "Shop", "map": "map.tmx", "pos": (38, 27)}
         ]
         
